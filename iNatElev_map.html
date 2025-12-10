@@ -942,9 +942,143 @@
 	.elevation-histogram {
 		z-index: 999; /* One less than observation list */
 	}
+
+	/* Observation List Loading States */
+	.observation-list-panel.loading .observation-list-items {
+		opacity: 0.5;
+	}
+
+	.observation-list-panel.loading .load-more-btn {
+		position: relative;
+	}
+
+	.observation-list-panel.loading .load-more-btn:after {
+		content: '';
+		position: absolute;
+		right: 10px;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 16px;
+		height: 16px;
+		border: 2px solid #ffffff;
+		border-top: 2px solid transparent;
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+	}
+
+	/* Smooth scrolling for new items */
+	.observation-list-items {
+		scroll-behavior: smooth;
+	}
+
+	/* Highlight animation for new items */
+	@keyframes highlightNewItem {
+		0% { background-color: #e3f2fd; }
+		100% { background-color: white; }
+	}
+
+	.observation-item.new {
+		animation: highlightNewItem 2s ease-out;
+	}
+
+	/* Monthly View Styles */
+	.month-cluster {
+		/* Smaller cluster icons */
+		transform: translate(-50%, -50%);
+	}
+
+	.month-legend {
+		background: white;
+		border-radius: 5px;
+		padding: 10px;
+		box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+		font-size: 12px;
+		max-width: 180px;
+	}
+
+	.month-legend-item {
+		display: flex;
+		align-items: center;
+		margin-bottom: 2px;
+		font-size: 10px;
+	}
+
+	.month-legend-color {
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		margin-right: 5px;
+		border: 1px solid #ddd;
+	}
+
+	/* Smaller cluster icons */
+	.leaflet-marker-icon.leaflet-cluster-animated {
+		width: 30px !important;
+		height: 30px !important;
+		margin-left: -15px !important;
+		margin-top: -15px !important;
+	}
+
+	.leaflet-cluster-animated .leaflet-marker-icon, 
+	.leaflet-cluster-animated .leaflet-marker-shadow {
+		-webkit-transition: -webkit-transform 0.3s ease-out, opacity 0.3s ease-in;
+		-moz-transition: -moz-transform 0.3s ease-out, opacity 0.3s ease-in;
+		-o-transition: -o-transform 0.3s ease-out, opacity 0.3s ease-in;
+		transition: transform 0.3s ease-out, opacity 0.3s ease-in;
+	}
+
+	@keyframes spin {
+		0% { transform: rotate(0deg); }
+		100% { transform: rotate(360deg); }
+	}
+
+	.monthly-loading-spinner {
+		width: 30px;
+		height: 30px;
+		border: 3px solid #f3f3f3;
+		border-top: 3px solid #4caf50;
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+	}
+
+	/* Monthly legend styles */
+	.month-legend {
+		background: white;
+		border-radius: 5px;
+		padding: 10px;
+		box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+		font-size: 12px;
+		max-width: 180px;
+		transition: all 0.3s ease;
+	}
+
+	.month-legend.loading {
+		min-height: 120px;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+
+	.month-legend-error {
+		border-left: 3px solid #d32f2f;
+	}
+
+	.month-legend-error .error-icon {
+		color: #d32f2f;
+		font-size: 20px;
+		text-align: center;
+		margin-bottom: 5px;
+	}
+
+	.month-legend-complete {
+		border-left: 3px solid #4caf50;
+	}
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
 <script>
 // debug grid example from https://leafletjs.com/examples/extending/extending-2-layers.html
 L.GridLayer.DebugCoords = L.GridLayer.extend({
@@ -1653,6 +1787,9 @@ L.gridLayer.utfGridCompare = function (options) {
                   <div class="radio">
                      <label><input type="radio" name="view" value="subsetratio" onchange="toggleView(this.value)"> Subset Ratio View</label>
                   </div>
+					<div class="radio">
+						<label><input type="radio" name="view" value="monthly" onchange="toggleView(this.value)"> Monthly View</label>
+					</div>
                </div>
                
                <div id="subsetratio-params" style="display:none; margin-top:10px;">
@@ -1870,6 +2007,472 @@ function toggleView(view) {
             histogram.style.display = 'none';
         }
     }
+    
+    // Clear monthly view if switching away from it
+    if (view !== 'monthly') {
+        clearMonthlyView();
+    }
+}
+
+// Monthly View Variables
+let monthlyMarkers = {};
+let monthlyClusters = {};
+let monthlyObservationData = [];
+
+// Function to initialize monthly view (only called on page load if monthly view is active)
+function initMonthlyView() {
+    // Only initialize if we're in monthly view
+    const currentView = new URLSearchParams(window.location.search).get('view');
+    if (currentView === 'monthly') {
+        console.log('Initializing monthly view...');
+        fetchMonthlyObservations();
+    }
+}
+
+// Function to fetch observations for monthly view
+async function fetchMonthlyObservations() {
+    try {
+        console.log('Fetching observations for monthly view...');
+        
+        // Add loading legend
+        addMonthlyLegend(true);
+        
+        // Get ALL observations
+        let allObservations = [];
+        let page = 1;
+        const perPage = 200;
+        let hasMore = true;
+        
+        // First, get total count
+        const countUrl = `${inat_urlbase}observations?per_page=1&${winurlparams}`;
+        const countResponse = await fetch(countUrl);
+        const countData = await countResponse.json();
+        const totalObservations = countData.total_results || 0;
+        
+        console.log(`Found ${totalObservations} total observations`);
+        
+        // Update initial progress
+        updateMonthlyLegendProgress(0, totalObservations);
+        
+        // Fetch observations in batches
+        while (hasMore) {
+            const observationsUrl = `${inat_urlbase}observations?per_page=${perPage}&page=${page}&${winurlparams}`;
+            const response = await fetch(observationsUrl);
+            const data = await response.json();
+            
+            if (!data.results || data.results.length === 0) {
+                hasMore = false;
+                break;
+            }
+            
+            allObservations = allObservations.concat(data.results);
+            
+            // Update loading progress
+            updateMonthlyLegendProgress(allObservations.length, totalObservations);
+            console.log(`Loaded ${allObservations.length} observations...`);
+            
+            if (data.results.length < perPage) {
+                hasMore = false;
+            }
+            page++;
+        }
+        
+        // Filter to observations with coordinates and observation dates
+        monthlyObservationData = allObservations.filter(obs => 
+            obs.geojson && obs.geojson.coordinates && obs.observed_on
+        );
+        
+        console.log(`Found ${monthlyObservationData.length} observations with dates and coordinates`);
+        
+        // Complete loading and show final legend
+        completeMonthlyLegend();
+        
+        // Create monthly markers
+        createMonthlyMarkers(monthlyObservationData);
+        
+    } catch (error) {
+        console.error('Error fetching observations for monthly view:', error);
+        // Update legend to show error state
+        showMonthlyLegendError('Failed to load observations');
+    }
+}
+
+// Function to show error in monthly legend
+function showMonthlyLegendError(errorMessage) {
+    // Remove existing legend if present
+    if (window.monthlyLegendControl) {
+        mymap.removeControl(window.monthlyLegendControl);
+    }
+    
+    const legend = L.control({ position: 'bottomleft' });
+    
+    legend.onAdd = function () {
+        const div = L.DomUtil.create('div', 'month-legend');
+        div.style.cssText = `
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-size: 12px;
+            max-width: 180px;
+        `;
+        
+        div.innerHTML = `
+            <div style="font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px; color: #d32f2f;">
+                Monthly View Error
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0;">
+                <div style="color: #d32f2f; font-size: 24px; margin-bottom: 8px;">⚠️</div>
+                <div style="font-size: 10px; color: #666; text-align: center;">
+                    ${errorMessage}<br>
+                    <button onclick="retryMonthlyView()" style="
+                        margin-top: 8px;
+                        padding: 4px 8px;
+                        background: #4caf50;
+                        color: white;
+                        border: none;
+                        border-radius: 3px;
+                        font-size: 10px;
+                        cursor: pointer;
+                    ">
+                        Retry
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        return div;
+    };
+    
+    legend.addTo(mymap);
+    window.monthlyLegendControl = legend;
+}
+
+// Function to retry monthly view
+function retryMonthlyView() {
+    clearMonthlyView();
+    fetchMonthlyObservations();
+}
+
+// Function to get month from observation
+function getMonthFromObservation(obs) {
+    const observedDate = new Date(obs.observed_on);
+    return observedDate.getMonth() + 1; // 1-12
+}
+
+// Function to get color for month (1-12)
+function getMonthColor(month) {
+    const colors = [
+        '#FF6B6B', // Jan - Deep Red
+        '#FF8E53', // Feb - Orange-Red
+        '#FFB347', // Mar - Orange
+        '#FFD166', // Apr - Yellow-Orange
+        '#A8E6CF', // May - Light Green
+        '#7BC8A4', // Jun - Green
+        '#4ECDC4', // Jul - Teal
+        '#45B7D1', // Aug - Light Blue
+        '#6C5CE7', // Sep - Purple
+        '#A29BFE', // Oct - Lavender
+        '#DDA0DD', // Nov - Plum
+        '#FFB6C1'  // Dec - Pink
+    ];
+    return colors[month - 1] || '#CCCCCC';
+}
+
+// Function to create monthly markers with separate clustering per month
+function createMonthlyMarkers(observations) {
+    // Clear existing layers
+    clearMonthlyView();
+    
+    // Show processing message
+    if (window.monthlyLegendControl) {
+        const legendDiv = document.querySelector('.month-legend');
+        if (legendDiv) {
+            legendDiv.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                    Processing Data...
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0;">
+                    <div class="monthly-loading-spinner" style="margin-bottom: 10px;"></div>
+                    <div style="font-size: 10px; color: #666; text-align: center;">
+                        Creating ${observations.length.toLocaleString()} markers<br>
+                        Grouping by month...
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    // Small delay to show processing message
+    setTimeout(() => {
+        // Group observations by month
+        const observationsByMonth = {};
+        for (let month = 1; month <= 12; month++) {
+            observationsByMonth[month] = [];
+        }
+        
+        // Sort observations by month
+        observations.forEach(obs => {
+            const month = getMonthFromObservation(obs);
+            if (month >= 1 && month <= 12) {
+                observationsByMonth[month].push(obs);
+            }
+        });
+        
+        // Create separate cluster groups for each month
+        Object.keys(observationsByMonth).forEach(month => {
+            const monthNum = parseInt(month);
+            const monthObservations = observationsByMonth[monthNum];
+            
+            if (monthObservations.length === 0) return;
+            
+            // Create a marker cluster group for this month ONLY
+            const monthCluster = L.markerClusterGroup({
+                maxClusterRadius: 20, // Smaller cluster radius as requested
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                disableClusteringAtZoom: 18, // Stop clustering at high zoom
+                iconCreateFunction: function(cluster) {
+                    const count = cluster.getChildCount();
+                    const monthName = getMonthName(monthNum);
+                    
+                    // Create custom cluster icon with month color
+                    return L.divIcon({
+                        html: `<div style="
+                            background-color: ${getMonthColor(monthNum)};
+                            width: 16px;
+                            height: 16px;
+                            border-radius: 50%;
+                            border: 1px solid white;
+                            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: white;
+                            font-weight: bold;
+                            font-size: 9px;
+                        ">
+                            ${count}
+                        </div>`,
+                        className: `month-cluster month-${monthNum}`,
+                        iconSize: [30, 30]
+                    });
+                }
+            });
+            
+            // Create individual markers for this month
+            monthObservations.forEach(obs => {
+                const lat = obs.geojson.coordinates[1];
+                const lng = obs.geojson.coordinates[0];
+                
+                // Create custom marker
+                const marker = L.circleMarker([lat, lng], {
+                    radius: 5,
+                    fillColor: getMonthColor(monthNum),
+                    color: '#ffffff',
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: 1
+                });
+                
+                // Bind popup
+                const popupContent = createMonthlyPopupContent(obs, monthNum);
+                marker.bindPopup(popupContent);
+                
+                // Add to this month's cluster
+                monthCluster.addLayer(marker);
+            });
+            
+            // Store the cluster
+            monthlyClusters[monthNum] = monthCluster;
+            
+            // Add to map
+            monthCluster.addTo(mymap);
+            
+            console.log(`Month ${monthNum}: ${monthObservations.length} observations`);
+        });
+        
+        // Update legend to show completion
+        addMonthlyLegend(false);
+        
+        // Fit map to show all markers if we have any
+        const allClusters = Object.values(monthlyClusters);
+        if (allClusters.length > 0) {
+            const allMarkers = L.featureGroup(allClusters);
+            mymap.fitBounds(allMarkers.getBounds().pad(0.1));
+        }
+        
+    }, 100);
+}
+
+// Function to create popup content for monthly markers
+function createMonthlyPopupContent(obs, month) {
+    const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    
+    const taxonName = obs.taxon?.preferred_common_name || obs.taxon?.name || 'Unknown';
+    const observer = obs.user?.login || 'Unknown';
+    const photoUrl = obs.photos?.[0]?.square_url || obs.photos?.[0]?.url || '';
+    const observedDate = new Date(obs.observed_on);
+    const formattedDate = observedDate.toLocaleDateString();
+    
+    return `
+        <div style="max-width: 250px;">
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                ${photoUrl ? '<img src="' + photoUrl + '" style="width: 60px; height: 60px; object-fit: cover; margin-right: 10px; border-radius: 3px;">' : 
+                  '<div style="width: 60px; height: 60px; margin-right: 10px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 3px; color: #999; font-size: 12px;">No photo</div>'}
+                <div style="flex: 1;">
+                    <strong style="font-size: 14px; display: block; margin-bottom: 3px;">${taxonName}</strong>
+                    <div style="font-size: 11px; color: ${getMonthColor(month)}; font-weight: bold; margin-bottom: 3px;">
+                        ${monthNames[month - 1]}
+                    </div>
+                    <div style="font-size: 11px; color: #666; margin-bottom: 5px;">By: ${observer}</div>
+                </div>
+            </div>
+            <div style="font-size: 11px; margin-bottom: 8px;">
+                <strong>Observed:</strong> ${formattedDate}<br>
+                <strong>Location:</strong> ${obs.geojson.coordinates[1].toFixed(6)}, ${obs.geojson.coordinates[0].toFixed(6)}<br>
+                ${obs.positional_accuracy ? `<strong>Accuracy:</strong> ${obs.positional_accuracy}m<br>` : ''}
+                <strong>Grade:</strong> ${obs.quality_grade}
+            </div>
+            <a href="https://www.inaturalist.org/observations/${obs.id}" target="_blank" 
+               style="display: block; text-align: center; background: ${getMonthColor(month)}; color: white; padding: 6px; border-radius: 4px; text-decoration: none; font-size: 12px;">
+                View on iNaturalist
+            </a>
+        </div>
+    `;
+}
+
+// Helper function to get month name
+function getMonthName(month) {
+    const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return monthNames[month - 1] || 'Unknown';
+}
+
+// Function to add monthly legend
+function addMonthlyLegend(loading = true) {
+    // Remove existing legend if present
+    if (window.monthlyLegendControl) {
+        mymap.removeControl(window.monthlyLegendControl);
+    }
+    
+    const legend = L.control({ position: 'bottomleft' });
+    
+    legend.onAdd = function () {
+        const div = L.DomUtil.create('div', 'month-legend');
+        div.style.cssText = `
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-size: 12px;
+            max-width: 180px;
+            min-height: 120px;
+        `;
+        
+        if (loading) {
+            div.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                    Loading Monthly View...
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0;">
+                    <div class="monthly-loading-spinner" style="
+                        width: 30px;
+                        height: 30px;
+                        border: 3px solid #f3f3f3;
+                        border-top: 3px solid #4caf50;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                        margin-bottom: 10px;
+                    "></div>
+                    <div style="font-size: 10px; color: #666; text-align: center;">
+                        Loading observations...<br>
+                        <span id="monthly-loading-count">0</span> loaded
+                    </div>
+                </div>
+            `;
+        } else {
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            div.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                    Observation Month
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 8px;">
+                    ${monthNames.map((monthName, index) => {
+                        const monthNum = index + 1;
+                        const monthColor = getMonthColor(monthNum);
+                        return `
+                            <div style="display: flex; align-items: center; margin-bottom: 2px;">
+                                <div style="width: 12px; height: 12px; background-color: ${monthColor}; border-radius: 50%; margin-right: 5px; border: 1px solid #ddd;"></div>
+                                <span style="font-size: 10px;">${monthName}</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <div style="margin-top: 8px; font-size: 9px; color: #666; border-top: 1px solid #eee; padding-top: 5px;">
+                    • Clusters show same month only<br>
+                </div>
+            `;
+        }
+        
+        return div;
+    };
+    
+    legend.addTo(mymap);
+    window.monthlyLegendControl = legend;
+}
+
+// Function to update loading progress in legend
+function updateMonthlyLegendProgress(loaded, total) {
+    if (!window.monthlyLegendControl) return;
+    
+    const legendDiv = document.querySelector('.month-legend');
+    if (!legendDiv) return;
+    
+    const countElement = legendDiv.querySelector('#monthly-loading-count');
+    if (countElement) {
+        countElement.textContent = `${loaded.toLocaleString()}`;
+        
+        // Update progress message based on percentage
+        const progressPercent = total > 0 ? Math.round((loaded / total) * 100) : 0;
+        const messageElement = countElement.previousElementSibling;
+        if (messageElement && messageElement.nodeType === 3) { // Text node
+            messageElement.textContent = `Loading observations... ${progressPercent}%`;
+        }
+    }
+}
+
+// Function to complete loading and show month colors
+function completeMonthlyLegend() {
+    // Re-add legend without loading state
+    addMonthlyLegend(false);
+}
+
+// Function to clear monthly view
+function clearMonthlyView() {
+    // Remove all month clusters
+    Object.values(monthlyClusters).forEach(cluster => {
+        if (cluster && mymap.hasLayer(cluster)) {
+            mymap.removeLayer(cluster);
+        }
+    });
+    
+    // Clear references
+    monthlyClusters = {};
+    monthlyMarkers = {};
+    
+    // Remove legend
+    if (window.monthlyLegendControl) {
+        mymap.removeControl(window.monthlyLegendControl);
+        window.monthlyLegendControl = null;
+    }
 }
 
 function toggleIconicTaxon(taxon) {
@@ -1963,7 +2566,7 @@ function applyAllFilters() {
     let params = new URLSearchParams(window.location.search);
     
     // Clear existing filter params
-    const currentView = filters.get('view') || params.get('view');
+    const currentView = filters.get('view') || params.get('view') || 'default';
     ['captive', 'verifiable', 'quality_grade', 'on', 'd1', 'd2', 'month', 
      'iconic_taxa', 'view', 'compare_exclude_param', 'taxon_name', 'place_name', 'place_id', 'histogram_enabled', 'zoom_level'].forEach(p => params.delete(p));
     
@@ -2028,6 +2631,11 @@ function applyAllFilters() {
         if (placeId) {
             params.set('place_id', placeId);
         }
+    }
+    
+    // If monthly view is selected, initialize it after page reload
+    if (filters.get('view') === 'monthly' || currentView === 'monthly') {
+        params.set('view', 'monthly');
     }
     
     // Reload with filters
@@ -2096,14 +2704,16 @@ function initializeFilterValues() {
             histogramCheckbox.checked = true;
         }
         
-        // Restore slider from URL
-        restoreSliderFromURL();
-        
-        // Show slider
-        const sliderContainer = document.getElementById('accuracy-slider-container');
-        if (sliderContainer) {
-            sliderContainer.style.display = 'block';
-        }
+		if (view === 'elevation') {
+			// Restore slider from URL
+			restoreSliderFromURL();
+			
+			// Show slider
+			const sliderContainer = document.getElementById('accuracy-slider-container');
+			if (sliderContainer) {
+				sliderContainer.style.display = 'block';
+			}
+		}
         
     } else {
         histogramSearchEnabled = false;
@@ -2113,11 +2723,13 @@ function initializeFilterValues() {
             histogramCheckbox.checked = false;
         }
         
-        // Hide slider
-        const sliderContainer = document.getElementById('accuracy-slider-container');
-        if (sliderContainer) {
-            sliderContainer.style.display = 'none';
-        }
+		if (view !== 'elevation') {
+			// Hide slider
+			const sliderContainer = document.getElementById('accuracy-slider-container');
+			if (sliderContainer) {
+				sliderContainer.style.display = 'none';
+			}
+		}
     }
    
    // Set checkboxes
@@ -2365,29 +2977,37 @@ document.addEventListener('click', function(event) {
 });
 
 function applySearch() {
-   const taxonName = document.getElementById('taxon_name').value;
-   const placeName = document.getElementById('place_name').value;
-   const placeId = document.getElementById('place_id').value;
-   
-   let params = new URLSearchParams(window.location.search);
-   
-   if (taxonName) {
-      params.set('taxon_name', taxonName);
-   } else {
-      params.delete('taxon_name');
-   }
-   
-   if (placeName) {
-      params.set('place_name', placeName);
-      if (placeId) {
-         params.set('place_id', placeId);
-      }
-   } else {
-      params.delete('place_name');
-      params.delete('place_id');
-   }
-   
-   window.location.href = window.location.pathname + '?' + params.toString();
+    const taxonName = document.getElementById('taxon_name').value;
+    const placeName = document.getElementById('place_name').value;
+    const placeId = document.getElementById('place_id').value;
+    
+    let params = new URLSearchParams(window.location.search);
+    
+    // Get current view
+    const currentView = filters.get('view') || params.get('view') || 'default';
+    
+    if (taxonName) {
+        params.set('taxon_name', taxonName);
+    } else {
+        params.delete('taxon_name');
+    }
+    
+    if (placeName) {
+        params.set('place_name', placeName);
+        if (placeId) {
+            params.set('place_id', placeId);
+        }
+    } else {
+        params.delete('place_name');
+        params.delete('place_id');
+    }
+    
+    // If monthly view is selected, we need to set it in URL
+    if (currentView === 'monthly') {
+        params.set('view', 'monthly');
+    }
+    
+    window.location.href = window.location.pathname + '?' + params.toString();
 }
 
 // AWS Terrain Tiles Utility Functions
@@ -2729,40 +3349,16 @@ function toggleHistogramSearch() {
     const sliderContainer = document.getElementById('accuracy-slider-container');
     
     if (checkbox.checked) {
-        const warningMessage = `⚠️ Elevation Search Warning ⚠️
-
-Elevation data will be fetched from AWS Terrain Tiles:
-• Higher accuracy (zoom) = more detailed elevation
-• Higher zoom = more tiles to download = slower
-• Recommended zoom: 10-12 for most use cases
-
-Click OK to enable elevation histogram search, or Cancel to keep it disabled.`;
-        
-        const userConfirmed = confirm(warningMessage);
-        
-        if (userConfirmed) {
-            histogramSearchEnabled = true;
-            elevationSearchConfirmed = true;
-            checkbox.checked = true;
-            
-            // Show accuracy slider
-            if (sliderContainer) {
-                sliderContainer.style.display = 'block';
-            }
-            
-            updateFilter('histogram_enabled', 'true', true);
-        } else {
-            histogramSearchEnabled = false;
-            elevationSearchConfirmed = false;
-            checkbox.checked = false;
-            
-            // Hide accuracy slider
-            if (sliderContainer) {
-                sliderContainer.style.display = 'none';
-            }
-            
-            updateFilter('histogram_enabled', 'false', true);
-        }
+		histogramSearchEnabled = true;
+		elevationSearchConfirmed = true;
+		checkbox.checked = true;
+		
+		// Show accuracy slider
+		if (sliderContainer) {
+			sliderContainer.style.display = 'block';
+		}
+		
+		updateFilter('histogram_enabled', 'true', true);
     } else {
         histogramSearchEnabled = false;
         elevationSearchConfirmed = false;
@@ -2817,12 +3413,7 @@ function checkLargeDatasetWarning(observationCount) {
 
 Found ${observationCount.toLocaleString()} observations with coordinates.
 
-This will use approximately:
-• ${Math.ceil(observationCount / 100)} Open Topo Data API calls
-• ${Math.ceil(observationCount / 100)} seconds minimum processing time
-• May trigger rate limits with extensive usage
-
-Consider filtering observations before elevation lookup.
+Consider filtering observations or decreasing accuracy tolerance before elevation lookup.
 
 Click OK to continue anyway, or Cancel to stop elevation lookup.`;
         
@@ -3171,6 +3762,11 @@ function cancelElevationLookup() {
             title.textContent = 'Elevation Distribution (ft)';
         }
     }
+
+    const histogramStatsBox = document.getElementById('histogramStats');
+	if (histogramStatsBox){
+		histogramStatsBox.style.display = 'none';
+	}
     
     // Update UI to show cancellation
     const loadingIndicator = document.getElementById('loadingIndicator');
@@ -3914,6 +4510,7 @@ function showObservationsInRange(minElev, maxElev) {
     currentObservations = observationsInRange;
     currentRange = { minElev, maxElev };
     currentPage = 1;
+    itemsPerPage = 15; // Items per page for the list
     
     // First, clear any existing markers from previous range selections
     clearObservationMarkers();
@@ -3924,11 +4521,11 @@ function showObservationsInRange(minElev, maxElev) {
     // Update the panel title with elevation range and count
     updateObservationListTitle(minElev, maxElev, observationsInRange.length);
     
-    // Load first page of observations
+    // Load first page of observations into the list
     loadObservationListPage();
     
-    // Create markers for first page
-    createMarkersForCurrentPage();
+    // Create markers for ALL observations in range (not just first page)
+    createMarkersForAllObservations();
     
     // Show the panel
     observationListPanel.style.display = 'flex';
@@ -3949,10 +4546,14 @@ function createObservationListPanel() {
 			</div>
 		</div>
 		<div class="observation-list-content">
-			<div class="observation-list-items" id="observationListItems"></div>
+			<div class="observation-list-items" id="observationListItems">
+				<div class="no-observations">
+					Select an elevation range from the histogram
+				</div>
+			</div>
 		</div>
 		<div class="observation-list-footer">
-			<button class="load-more-btn" onclick="loadMoreObservations()" id="loadMoreBtn">
+			<button class="load-more-btn" onclick="loadMoreObservations()" id="loadMoreBtn" disabled>
 				Load More Observations
 			</button>
 		</div>
@@ -3975,9 +4576,9 @@ function loadObservationListPage() {
     // Clear existing items
     itemsContainer.innerHTML = '';
     
-    // Calculate start and end indices
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, currentObservations.length);
+    // Calculate start and end indices for first page
+    const startIndex = 0;
+    const endIndex = Math.min(itemsPerPage, currentObservations.length);
     const pageObservations = currentObservations.slice(startIndex, endIndex);
     
     if (pageObservations.length === 0) {
@@ -3991,6 +4592,305 @@ function loadObservationListPage() {
     
     // Create items for each observation
     pageObservations.forEach((obsData, index) => {
+        const globalIndex = index;
+        const obs = obsData.observation;
+        const taxonName = obs.taxon?.preferred_common_name || obs.taxon?.name || 'Unknown';
+        const observer = obs.user?.login || 'Unknown';
+        const photoUrl = obs.photos?.[0]?.square_url || obs.photos?.[0]?.url || '';
+        
+        // Get elevation color
+        const elevationColor = getElevationColor(obsData.elevation);
+        
+        const item = document.createElement('div');
+        item.className = `observation-item ${selectedObservationIndex === globalIndex ? 'selected' : ''}`;
+        item.onclick = () => highlightObservationFromList(globalIndex);
+        
+        item.innerHTML = `
+            <div class="observation-item-photo ${!photoUrl ? 'no-photo' : ''}">
+                ${photoUrl ? `<img src="${photoUrl}" alt="${taxonName}">` : 'No Photo'}
+            </div>
+            <div class="observation-item-details">
+                <div class="observation-item-name" title="${taxonName}">${taxonName}</div>
+                <div class="observation-item-elevation" style="color: ${elevationColor}">
+                    ${Math.round(obsData.elevation)} ft
+                </div>
+                <div class="observation-item-meta">
+                    <span>By: ${observer}</span>
+                    <span>•</span>
+                    <span>${obs.observed_on?.substring(0, 10) || 'Unknown date'}</span>
+                </div>
+            </div>
+        `;
+        
+        itemsContainer.appendChild(item);
+    });
+    
+    // Update load more button
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+        if (endIndex >= currentObservations.length) {
+            loadMoreBtn.disabled = true;
+            loadMoreBtn.textContent = 'All observations loaded';
+            loadMoreBtn.style.opacity = '0.6';
+        } else {
+            loadMoreBtn.disabled = false;
+            loadMoreBtn.textContent = `Load More (${endIndex}/${currentObservations.length})`;
+            loadMoreBtn.style.opacity = '1';
+        }
+    }
+}
+
+function getElevationColor(elevation) {
+    if (!currentRange) return '#3498db';
+    
+    // Calculate position in current range
+    const rangeSize = currentRange.maxElev - currentRange.minElev;
+    const positionInRange = (elevation - currentRange.minElev) / rangeSize;
+    
+    // Use same color gradient as histogram (blue to purple)
+    const hue = 210 - (positionInRange * 120);
+    return `hsl(${hue}, 75%, 60%)`;
+}
+
+function createMarkersForAllObservations() {
+    if (!currentObservations || currentObservations.length === 0) {
+        console.log('No observations to create markers for');
+        return;
+    }
+    
+    console.log(`Creating markers for ${currentObservations.length} observations`);
+    
+    // Create a layer group for all markers
+    observationMarkers = L.layerGroup();
+    
+    // Create a marker for EACH observation
+    currentObservations.forEach((obsData, index) => {
+        const elevationColor = getElevationColor(obsData.elevation);
+        
+        // Create marker with elevation-based color
+        const marker = L.circleMarker([obsData.lat, obsData.lng], {
+            radius: 6,
+            fillColor: elevationColor,
+            color: '#ffffff',
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 1
+        });
+        
+        // Store the index with the marker
+        marker.observationIndex = index;
+        
+        const obs = obsData.observation;
+        const taxonName = obs.taxon?.preferred_common_name || obs.taxon?.name || 'Unknown';
+        const observer = obs.user?.login || 'Unknown';
+        const photoUrl = obs.photos?.[0]?.square_url || obs.photos?.[0]?.url || '';
+        
+        const markerPopupContent = `
+            <div style="max-width: 250px;">
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                    ${photoUrl ? '<img src="' + photoUrl + '" style="width: 60px; height: 60px; object-fit: cover; margin-right: 10px; border-radius: 3px;">' : 
+                      '<div style="width: 60px; height: 60px; margin-right: 10px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 3px; color: #999; font-size: 12px;">No photo</div>'}
+                    <div style="flex: 1;">
+                        <strong style="font-size: 14px; display: block; margin-bottom: 3px;">${taxonName}</strong>
+                        <div style="font-size: 11px; color: ${elevationColor}; font-weight: bold; margin-bottom: 3px;">
+                            ${Math.round(obsData.elevation)} ft
+                        </div>
+                        <div style="font-size: 11px; color: #666; margin-bottom: 5px;">By: ${observer}</div>
+                    </div>
+                </div>
+                <div style="font-size: 11px; margin-bottom: 8px;">
+                    <strong>Location:</strong> ${obsData.lat.toFixed(6)}, ${obsData.lng.toFixed(6)}<br>
+                    <strong>Observed:</strong> ${obs.observed_on || 'Unknown date'}
+                </div>
+                <a href="https://www.inaturalist.org/observations/${obs.id}" target="_blank" 
+                   style="display: block; text-align: center; background: #4caf50; color: white; padding: 6px; border-radius: 4px; text-decoration: none; font-size: 12px;">
+                    View observation on iNaturalist
+                </a>
+            </div>
+        `;
+        
+        marker.bindPopup(markerPopupContent);
+        marker.addTo(observationMarkers);
+        
+        // Add click handler to highlight in list
+        marker.on('click', () => {
+            highlightObservationFromList(index);
+        });
+        
+        // Store marker reference
+        observationMarkersList[index] = marker;
+    });
+    
+    // Add the marker layer to the map
+    observationMarkers.addTo(mymap);
+    
+    // Fit map to show ALL markers (not just first page)
+    if (observationMarkersList.length > 0) {
+        const group = new L.featureGroup(observationMarkersList.filter(m => m));
+        mymap.fitBounds(group.getBounds().pad(0.1)); // Add 10% padding
+    }
+    
+    console.log(`Created ${observationMarkersList.filter(m => m).length} markers on map`);
+}
+
+// Function to create markers for specific page only (for list synchronization)
+function createMarkersForCurrentPageOnly() {
+    // Calculate start and end indices for current page
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, currentObservations.length);
+    const pageObservations = currentObservations.slice(startIndex, endIndex);
+    
+    // Clear any existing markers from previous page
+    if (observationMarkers) {
+        mymap.removeLayer(observationMarkers);
+        observationMarkersList = [];
+    }
+    
+    // Create a layer group for page markers
+    observationMarkers = L.layerGroup();
+    
+    pageObservations.forEach((obsData, localIndex) => {
+        const globalIndex = startIndex + localIndex;
+        const elevationColor = getElevationColor(obsData.elevation);
+        
+        // Create marker with elevation-based color
+        const marker = L.circleMarker([obsData.lat, obsData.lng], {
+            radius: 6,
+            fillColor: elevationColor,
+            color: '#ffffff',
+            weight: 2,
+            opacity: 0.8,
+            fillOpacity: 0.7
+        });
+        
+        // Store the global index with the marker
+        marker.observationIndex = globalIndex;
+        
+        const obs = obsData.observation;
+        const taxonName = obs.taxon?.preferred_common_name || obs.taxon?.name || 'Unknown';
+        const observer = obs.user?.login || 'Unknown';
+        const photoUrl = obs.photos?.[0]?.square_url || obs.photos?.[0]?.url || '';
+        
+        const markerPopupContent = `
+            <div style="max-width: 250px;">
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                    ${photoUrl ? '<img src="' + photoUrl + '" style="width: 60px; height: 60px; object-fit: cover; margin-right: 10px; border-radius: 3px;">' : 
+                      '<div style="width: 60px; height: 60px; margin-right: 10px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 3px; color: #999; font-size: 12px;">No photo</div>'}
+                    <div style="flex: 1;">
+                        <strong style="font-size: 14px; display: block; margin-bottom: 3px;">${taxonName}</strong>
+                        <div style="font-size: 11px; color: ${elevationColor}; font-weight: bold; margin-bottom: 3px;">
+                            ${Math.round(obsData.elevation)} ft
+                        </div>
+                        <div style="font-size: 11px; color: #666; margin-bottom: 5px;">By: ${observer}</div>
+                    </div>
+                </div>
+                <div style="font-size: 11px; margin-bottom: 8px;">
+                    <strong>Location:</strong> ${obsData.lat.toFixed(6)}, ${obsData.lng.toFixed(6)}<br>
+                    <strong>Observed:</strong> ${obs.observed_on || 'Unknown date'}
+                </div>
+                <a href="https://www.inaturalist.org/observations/${obs.id}" target="_blank" 
+                   style="display: block; text-align: center; background: #4caf50; color: white; padding: 6px; border-radius: 4px; text-decoration: none; font-size: 12px;">
+                    View observation on iNaturalist
+                </a>
+            </div>
+        `;
+        
+        marker.bindPopup(markerPopupContent);
+        marker.addTo(observationMarkers);
+        
+        // Add click handler to highlight in list
+        marker.on('click', () => {
+            highlightObservationFromList(globalIndex);
+        });
+        
+        // Store marker reference
+        observationMarkersList[globalIndex] = marker;
+    });
+    
+    // Add the marker layer to the map
+    observationMarkers.addTo(mymap);
+    
+    // Fit map to show markers from this page only
+    const validMarkers = observationMarkersList.filter(m => m);
+    if (validMarkers.length > 0) {
+        const group = new L.featureGroup(validMarkers);
+        mymap.fitBounds(group.getBounds().pad(0.1)); // Add 10% padding
+    }
+}
+
+function highlightObservationFromList(index) {
+    selectedObservationIndex = index;
+    
+    // Update list selection
+    const items = document.querySelectorAll('.observation-item');
+    items.forEach((item, i) => {
+        // Calculate the actual index for this item
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const actualIndex = startIndex + i;
+        item.classList.toggle('selected', actualIndex === index);
+    });
+    
+    // Find and highlight the corresponding marker
+    if (observationMarkersList[index]) {
+        // Reset all markers to their original colors
+        Object.keys(observationMarkersList).forEach(key => {
+            const marker = observationMarkersList[key];
+            if (marker && marker.observationIndex !== undefined) {
+                const markerIndex = marker.observationIndex;
+                const obsData = currentObservations[markerIndex];
+                if (obsData) {
+                    const elevationColor = getElevationColor(obsData.elevation);
+                    const isSelected = parseInt(key) === index;
+                    
+                    marker.setStyle({
+                        fillColor: elevationColor,
+                        color: isSelected ? '#ffeb3b' : '#ffffff', // Yellow border for selected
+                        radius: isSelected ? 8 : 6,
+                        weight: isSelected ? 3 : 2
+                    });
+                }
+            }
+        });
+        
+        // Open the popup for the selected marker
+        observationMarkersList[index].openPopup();
+        
+        // Pan to the selected marker
+        mymap.panTo(observationMarkersList[index].getLatLng());
+        
+        // Ensure the marker is visible by adjusting zoom if needed
+        const markerBounds = observationMarkersList[index].getBounds();
+        if (markerBounds) {
+            const currentBounds = mymap.getBounds();
+            if (!currentBounds.contains(markerBounds)) {
+                mymap.setView(observationMarkersList[index].getLatLng(), mymap.getZoom());
+            }
+        }
+    }
+}
+
+function loadMoreObservations() {
+    currentPage++;
+    
+    // Calculate start and end indices for the new page
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, currentObservations.length);
+    
+    if (startIndex >= currentObservations.length) {
+        console.log('No more observations to load');
+        return;
+    }
+    
+    console.log(`Loading page ${currentPage}: items ${startIndex + 1} to ${endIndex}`);
+    
+    // Get the new page of observations
+    const newPageObservations = currentObservations.slice(startIndex, endIndex);
+    const itemsContainer = document.getElementById('observationListItems');
+    
+    if (!itemsContainer || newPageObservations.length === 0) return;
+    
+    // Append new items to the existing list
+    newPageObservations.forEach((obsData, index) => {
         const globalIndex = startIndex + index;
         const obs = obsData.observation;
         const taxonName = obs.taxon?.preferred_common_name || obs.taxon?.name || 'Unknown';
@@ -4030,146 +4930,19 @@ function loadObservationListPage() {
         if (endIndex >= currentObservations.length) {
             loadMoreBtn.disabled = true;
             loadMoreBtn.textContent = 'All observations loaded';
+            loadMoreBtn.style.opacity = '0.6';
         } else {
             loadMoreBtn.disabled = false;
             loadMoreBtn.textContent = `Load More (${endIndex}/${currentObservations.length})`;
+            loadMoreBtn.style.opacity = '1';
         }
     }
-}
-
-function getElevationColor(elevation) {
-    if (!currentRange) return '#3498db';
     
-    // Calculate position in current range
-    const rangeSize = currentRange.maxElev - currentRange.minElev;
-    const positionInRange = (elevation - currentRange.minElev) / rangeSize;
-    
-    // Use same color gradient as histogram (blue to purple)
-    const hue = 210 - (positionInRange * 120);
-    return `hsl(${hue}, 75%, 60%)`;
-}
-
-function createMarkersForCurrentPage() {
-    // Calculate start and end indices for current page
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, currentObservations.length);
-    const pageObservations = currentObservations.slice(startIndex, endIndex);
-    
-    // Create a layer group for all markers
-    observationMarkers = L.layerGroup();
-    
-    pageObservations.forEach((obsData, index) => {
-        const globalIndex = startIndex + index;
-        const elevationColor = getElevationColor(obsData.elevation);
-        
-        // Create marker with elevation-based color
-        const marker = L.circleMarker([obsData.lat, obsData.lng], {
-            radius: 8,
-            fillColor: elevationColor,
-            color: '#ffffff',
-            weight: 2,
-            opacity: 0.8,
-            fillOpacity: 0.7
-        });
-        
-        // Store the global index with the marker
-        marker.observationIndex = globalIndex;
-        
-        const obs = obsData.observation;
-        const taxonName = obs.taxon?.preferred_common_name || obs.taxon?.name || 'Unknown';
-        const observer = obs.user?.login || 'Unknown';
-        const photoUrl = obs.photos?.[0]?.square_url || obs.photos?.[0]?.url || '';
-        
-        const markerPopupContent = `
-            <div style="max-width: 250px;">
-                <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                    ${photoUrl ? '<img src="' + photoUrl + '" style="width: 60px; height: 60px; object-fit: cover; margin-right: 10px; border-radius: 3px;">' : 
-                      '<div style="width: 60px; height: 60px; margin-right: 10px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 3px; color: #999; font-size: 12px;">No photo</div>'}
-                    <div style="flex: 1;">
-                        <strong style="font-size: 14px; display: block; margin-bottom: 3px;">${taxonName}</strong>
-                        <div style="font-size: 11px; color: #666; margin-bottom: 3px;">${Math.round(obsData.elevation)} ft</div>
-                        <div style="font-size: 11px; color: #666; margin-bottom: 5px;">By: ${observer}</div>
-                    </div>
-                </div>
-                <div style="font-size: 11px; margin-bottom: 8px;">
-                    <strong>Location:</strong> ${obsData.lat.toFixed(6)}, ${obsData.lng.toFixed(6)}<br>
-                    <strong>Observed:</strong> ${obs.observed_on || 'Unknown date'}
-                </div>
-                <a href="https://www.inaturalist.org/observations/${obs.id}" target="_blank" 
-                   style="display: block; text-align: center; background: #4caf50; color: white; padding: 6px; border-radius: 4px; text-decoration: none; font-size: 12px;">
-                    View observation on iNaturalist
-                </a>
-            </div>
-        `;
-        
-        marker.bindPopup(markerPopupContent);
-        marker.addTo(observationMarkers);
-        
-        // Add click handler to highlight in list
-        marker.on('click', () => {
-            highlightObservationFromList(globalIndex);
-        });
-        
-        // Store marker reference
-        observationMarkersList.push(marker);
-    });
-    
-    // Add the marker layer to the map
-    observationMarkers.addTo(mymap);
-    
-    // Fit map to show all markers from this page
-    if (observationMarkersList.length > 0) {
-        const group = new L.featureGroup(observationMarkersList);
-        mymap.fitBounds(group.getBounds().pad(0.1)); // Add 10% padding
+    // Auto-scroll to show the newly loaded items
+    const lastItem = itemsContainer.lastElementChild;
+    if (lastItem) {
+        lastItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
-}
-
-function highlightObservationFromList(index) {
-    selectedObservationIndex = index;
-    
-    // Update list selection
-    const items = document.querySelectorAll('.observation-item');
-    items.forEach((item, i) => {
-        // Calculate the actual index for this item
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const actualIndex = startIndex + i;
-        item.classList.toggle('selected', actualIndex === index);
-    });
-    
-    // Find and highlight the corresponding marker
-    if (observationMarkersList[index]) {
-        // Reset all markers to their original colors
-        observationMarkersList.forEach((marker, i) => {
-            if (marker.observationIndex !== undefined) {
-                const obsData = currentObservations[marker.observationIndex];
-                if (obsData) {
-                    const elevationColor = getElevationColor(obsData.elevation);
-                    marker.setStyle({
-                        fillColor: i === index ? elevationColor : elevationColor,
-                        color: i === index ? '#ffeb3b' : '#ffffff', // Yellow border for selected
-                        radius: i === index ? 10 : 8,
-                        weight: i === index ? 3 : 2
-                    });
-                }
-            }
-        });
-        
-        // Open the popup for the selected marker
-        observationMarkersList[index].openPopup();
-        
-        // Pan to the selected marker
-        mymap.panTo(observationMarkersList[index].getLatLng());
-    }
-}
-
-function loadMoreObservations() {
-    currentPage++;
-    
-    // Load next page of observations into the list
-    loadObservationListPage();
-    
-    // Create markers for the new page
-    createMarkersForCurrentPage();
 }
 
 function toggleObservationList() {
@@ -4219,6 +4992,17 @@ function clearObservationMarkers() {
     const title = document.getElementById('observationListTitle');
     if (title) {
         title.textContent = 'Observations';
+    }
+    
+    // Reset page counter
+    currentPage = 1;
+    
+    // Reset load more button
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.disabled = false;
+        loadMoreBtn.textContent = 'Load More Observations';
+        loadMoreBtn.style.opacity = '1';
     }
 }
 
@@ -4343,8 +5127,12 @@ function updateHistogramOnViewChange(newView) {
 // Modify the existing toggleView function to handle histogram
 const originalToggleView = window.toggleView;
 window.toggleView = function(view) {
-   originalToggleView.call(this, view);
-   updateHistogramOnViewChange(view);
+    // Clear monthly view if switching away from it
+    if (view !== 'monthly') {
+        clearMonthlyView();
+    }
+    originalToggleView.call(this, view);
+    updateHistogramOnViewChange(view);
 };
 
 // Initialize on page load
@@ -4354,6 +5142,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const placeName = params.get('place_name');
     const placeId = params.get('place_id');
     const view = params.get('view') || 'default';
+
+    // Initialize monthly view only if it's active in URL
+    if (view === 'monthly') {
+        // Small delay to ensure map is loaded
+        setTimeout(() => {
+            // Add initial loading legend immediately
+            addMonthlyLegend(true);
+            initMonthlyView();
+        }, 500);
+    }
     
     if (taxonName) {
         document.getElementById('taxon_name').value = taxonName;
@@ -4456,6 +5254,11 @@ function refreshElevationHistogram() {
             }
         }
         
+		const histogramStatsBox = document.getElementById('histogramStats');
+		if (histogramStatsBox){
+			histogramStatsBox.style.display = 'block';
+		}
+
         histogramStarted = false; // Allow fresh start
         collectElevationData();
     }
