@@ -1073,6 +1073,277 @@
 	.month-legend-complete {
 		border-left: 3px solid #4caf50;
 	}
+
+	/* Slope Aspect Compass Container */
+	.slope-aspect-compass {
+		position: absolute;
+		bottom: 35px;
+		right: 10px;
+		width: 200px;
+		height: 300px;
+		background: white;
+		border-radius: 8px;
+		box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+		padding: 16px;
+		z-index: 998;
+		overflow: hidden;
+		border: 1px solid #e0e0e0;
+		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.slope-aspect-compass.minimized {
+		width: 30px;
+		height: 30px;
+		padding: 5px;
+		bottom: 35px;
+		right: 10px;
+	}
+
+	.slope-aspect-compass.minimized .compass-content,
+	.slope-aspect-compass.minimized .compass-title {
+		display: none;
+	}
+
+	.compass-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 16px;
+	}
+
+	.compass-title {
+		margin: 0;
+		font-size: 15px;
+		font-weight: 600;
+		color: #2c3e50;
+		letter-spacing: -0.2px;
+	}
+
+	.compass-controls {
+		display: flex;
+		gap: 4px;
+	}
+
+	.compass-controls button {
+		background: none;
+		border: none;
+		width: 28px;
+		height: 28px;
+		border-radius: 4px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		color: #7f8c8d;
+		transition: all 0.2s ease;
+		font-size: 16px;
+		line-height: 1;
+		padding: 0;  
+	}
+
+	.compass-controls button:hover {
+		background: #f8f9fa;
+		color: #2c3e50;
+	}
+
+	.compass-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 16px;
+	}
+
+	.compass-rose {
+		position: relative;
+		width: 180px;
+		height: 180px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+		border: 2px solid #dee2e6;
+		box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+	}
+
+	.compass-direction {
+		position: absolute;
+		width: 35px;
+		height: 35px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		font-size: 11px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		border-radius: 50%;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		z-index: 2;
+		border: 2px solid white;
+	}
+
+	.compass-direction:hover {
+		transform: scale(1.15);
+		box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+		z-index: 10;
+	}
+
+	.compass-direction.active {
+		border: 3px solid #2c3e50;
+		box-shadow: 0 4px 12px rgba(44, 62, 80, 0.4);
+		z-index: 11;
+	}
+
+	.compass-direction.highlight {
+		border: 3px solid #ff9800;
+		box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+	}
+
+	.compass-direction .count {
+		color: rgba(0,0,0);
+		text-align: center;
+		font-size: 9px;
+		font-weight: bold;
+		margin-top: 2px;
+		background: rgba(255, 255, 255, 0.9);
+		border-radius: 3px;
+		padding: 1px 3px;
+		min-width: 15px;
+	}
+
+	.compass-center {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 45px;
+		height: 45px;
+		background: #95a5a6;
+		color: white;
+		border-radius: 50%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		font-size: 11px;
+		font-weight: bold;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+		z-index: 3;
+		border: 2px solid white;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.compass-center:hover {
+		transform: translate(-50%, -50%) scale(1.1);
+		box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+	}
+
+	.compass-center.active {
+		border: 3px solid #2c3e50;
+		box-shadow: 0 4px 12px rgba(44, 62, 80, 0.4);
+	}
+
+	.compass-center .label {
+		font-weight: bold;
+	}
+
+	.compass-center .count {
+		text-align: center;
+		font-size: 10px;
+		font-weight: bold;
+		margin-top: 2px;
+		background: rgba(255, 255, 255, 0.2);
+		border-radius: 3px;
+		padding: 1px 4px;
+	}
+
+	.compass-stats {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 8px;
+		width: 100%;
+		margin-top: 10px;
+	}
+
+	.compass-stat-item {
+		text-align: center;
+		padding: 8px;
+		background: #f8f9fa;
+		border-radius: 6px;
+		border: 1px solid #dee2e6;
+	}
+
+	.compass-stat-label {
+		font-size: 9px;
+		color: #6c757d;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+		margin-bottom: 2px;
+	}
+
+	.compass-stat-value {
+		font-size: 14px;
+		font-weight: 600;
+		color: #2c3e50;
+	}
+
+	.compass-stat-unit {
+		font-size: 10px;
+		color: #95a5a6;
+		margin-left: 2px;
+	}
+
+	.aspect-marker-cluster {
+		background-color: transparent !important;
+		border: none !important;
+	}
+
+	.aspect-marker-cluster div {
+		color: white;
+		font-weight: bold;
+	}
+
+	.compass-footer {
+		margin-top: 10px;
+		text-align: center;
+	}
+
+	.compass-controls button[title="Clear Markers"], {
+		padding: 6px 12px;
+		font-size: 11px;
+		background: rgba(192,192,192,0.3);
+		color: white;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		display: flex;
+		align-items:center;
+		justify-content:center"
+	}
+
+	#clearMarkersBtn:hover {
+		background: #c0392b;
+		transform: translateY(-1px);
+		box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+	}
+
+	#clearMarkersBtn:active {
+		transform: translateY(0);
+		box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+	}
+
+	/* Style the trash button in header */
+	.compass-controls {
+		background: rgba(192,192,192,0.3);
+		color: #2c3e50;
+	}
+
+	.compass-controls:hover, {
+		background: rgba(192,192,192,0.4);
+	}
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
@@ -1869,6 +2140,36 @@ L.gridLayer.utfGridCompare = function (options) {
       </div>
    </div>
 </div>
+<!-- Slope Aspect Compass Container -->
+<div class="slope-aspect-compass" id="slopeAspectCompass" style="display: none;">
+	<div class="compass-header">
+		<h3 class="compass-title">Slope Aspect</h3>
+		<div class="compass-controls">
+			<button onclick="clearAspectMarkers()" id="clearMarkersBtn" title="Clear Markers" style="font-size: 14px;">🗑️</button>
+			<button onclick="toggleSlopeAspectCompass()" id="minimizeMarkersBtn" title="Minimize">−</button>
+		</div>
+	</div>
+	<div class="compass-content">
+		<div class="loading-indicator" id="compassLoadingIndicator" style="display: none;">
+			<div class="loading-spinner"></div>
+			<div class="loading-text">Calculating slope aspects...</div>
+		</div>
+		<div class="compass-container" id="compassContainer">
+			<div class="compass-rose" id="compassRose"></div>
+			<div class="compass-stats" id="compassStats"></div>
+			<div class="compass-footer" style="margin-top: 10px; text-align: center;">
+				<button id="clearMarkersBtn" onclick="clearAspectMarkers()" 
+						style="display: none; padding: 6px 12px; font-size: 11px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
+					Clear Map Markers
+				</button>
+				<button id="minimizeMarkersBtn" onclick="toggleSlopeAspectCompass()" 
+						style="display: none; padding: 6px 12px; font-size: 11px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
+					Clear Map Markers
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
 <script>
 // Simple filter management
 let filters = new Map();
@@ -1889,7 +2190,7 @@ function toggleSearchControls() {
       controls.classList.add('minimized');
       hideFilters();
       btn.innerHTML = '🔎︎';
-      btn.title = "Restore";
+      btn.title = "Search";
    }
 }
 
@@ -2816,6 +3117,673 @@ function getCurrentZoomLevel() {
     return zoomLevel;
 }
 
+// Slope Aspect Variables
+let slopeAspectData = [];
+let aspectMarkers = null;
+let aspectCluster = null;
+let currentSelectedAspect = null;
+
+// Function to calculate slope aspect from elevation data
+async function calculateSlopeAspects() {
+    if (!elevationData || elevationData.length === 0) {
+        console.log('No elevation data available for slope calculation');
+        return;
+    }
+    
+    console.log('Calculating slope aspects for', elevationData.length, 'observations');
+    
+    // Show loading state
+    const loadingIndicator = document.getElementById('compassLoadingIndicator');
+    const compassContainer = document.getElementById('compassContainer');
+    if (loadingIndicator) loadingIndicator.style.display = 'flex';
+    if (compassContainer) compassContainer.style.display = 'none';
+    
+    try {
+        // Group points by tile for batch processing
+        const zoomLevel = getCurrentZoomLevel();
+        const points = elevationData.map(obs => ({
+            id: obs.id,
+            lat: obs.lat,
+            lng: obs.lng,
+            elevation: obs.elevation,
+            observation: obs.observation
+        }));
+        
+        // Get elevations for surrounding points to calculate slope
+        const slopeData = await calculateSlopesForPoints(points, zoomLevel);
+        
+        // Process slope data into aspects
+        const aspectBuckets = {
+            'Flat': { count: 0, degrees: [-1, 1], color: '#95a5a6' },
+            'N': { count: 0, degrees: [337.5, 22.5], color: '#4caf50' },
+            'NE': { count: 0, degrees: [22.5, 67.5], color: '#8bc34a' },
+            'E': { count: 0, degrees: [67.5, 112.5], color: '#cddc39' },
+            'SE': { count: 0, degrees: [112.5, 157.5], color: '#ffeb3b' },
+            'S': { count: 0, degrees: [157.5, 202.5], color: '#ff9800' },
+            'SW': { count: 0, degrees: [202.5, 247.5], color: '#ff5722' },
+            'W': { count: 0, degrees: [247.5, 292.5], color: '#e91e63' },
+            'NW': { count: 0, degrees: [292.5, 337.5], color: '#9c27b0' }
+        };
+        
+        slopeData.forEach(point => {
+            if (point.aspect !== null) {
+                const aspectDegrees = point.aspect;
+                
+                // Determine aspect category
+                let category = 'Flat';
+                
+                if (aspectDegrees >= 337.5 || aspectDegrees < 22.5) category = 'N';
+                else if (aspectDegrees >= 22.5 && aspectDegrees < 67.5) category = 'NE';
+                else if (aspectDegrees >= 67.5 && aspectDegrees < 112.5) category = 'E';
+                else if (aspectDegrees >= 112.5 && aspectDegrees < 157.5) category = 'SE';
+                else if (aspectDegrees >= 157.5 && aspectDegrees < 202.5) category = 'S';
+                else if (aspectDegrees >= 202.5 && aspectDegrees < 247.5) category = 'SW';
+                else if (aspectDegrees >= 247.5 && aspectDegrees < 292.5) category = 'W';
+                else if (aspectDegrees >= 292.5 && aspectDegrees < 337.5) category = 'NW';
+                
+                aspectBuckets[category].count++;
+                
+                // Store detailed data
+                slopeAspectData.push({
+                    ...point,
+                    aspectCategory: category,
+                    aspectDegrees: aspectDegrees
+                });
+            }
+        });
+        
+        // Count Flat terrain as very gentle slopes (< 2°)
+        const flatCount = slopeData.filter(point => 
+            point.slope !== null && point.slope < 2
+        ).length;
+        
+        aspectBuckets.Flat.count = Math.max(aspectBuckets.Flat.count, flatCount);
+        
+        console.log('Slope aspect distribution:', aspectBuckets);
+        
+        // Hide loading, show compass
+        if (loadingIndicator) loadingIndicator.style.display = 'none';
+        if (compassContainer) compassContainer.style.display = 'flex';
+        
+        // Create compass visualization
+        createCompassVisualization(aspectBuckets);
+        
+        // Show the compass container
+        const compass = document.getElementById('slopeAspectCompass');
+        if (compass) {
+            compass.style.display = 'block';
+        }
+        
+    } catch (error) {
+        console.error('Error calculating slope aspects:', error);
+        if (loadingIndicator) {
+            loadingIndicator.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">❌</div>
+                    <div style="font-size: 13px; color: #d32f2f; margin-bottom: 5px;">Error</div>
+                    <div style="font-size: 11px; color: #888;">Failed to calculate slope aspects</div>
+                </div>
+            `;
+        }
+    }
+}
+
+// Function to calculate slopes for points using AWS Terrain Tiles
+async function calculateSlopesForPoints(points, zoomLevel) {
+    const slopeData = [];
+    
+    // Group points by tile
+    const groups = groupPointsByTile(points, zoomLevel);
+    const tileKeys = Object.keys(groups);
+    
+    console.log(`Calculating slopes for ${points.length} points across ${tileKeys.length} tiles`);
+    
+    // Process tiles in batches
+    const concurrencyLimit = 4;
+    
+    for (let i = 0; i < tileKeys.length; i += concurrencyLimit) {
+        const batch = tileKeys.slice(i, i + concurrencyLimit);
+        const batchPromises = batch.map(async (key) => {
+            try {
+                const [z, x, y] = key.split("/").map(Number);
+                const url = getTileURL(z, x, y);
+                
+                const img = await loadTileImage(url);
+                const canvas = document.createElement("canvas");
+                canvas.width = 256;
+                canvas.height = 256;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0);
+                
+                // Calculate slopes for all points in this tile
+                for (const p of groups[key]) {
+                    const pix = latLonToPixelInTile(p.lat, p.lng, p.tile, zoomLevel);
+                    
+                    if (pix.inBounds) {
+                        // Get elevations in a 3x3 window around the point
+                        const elevations = [];
+                        for (let dx = -1; dx <= 1; dx++) {
+                            for (let dy = -1; dy <= 1; dy++) {
+                                const ex = pix.x + dx;
+                                const ey = pix.y + dy;
+                                if (ex >= 0 && ex < 256 && ey >= 0 && ey < 256) {
+                                    const elev = readElevation(ctx, ex, ey);
+                                    if (elev !== null) {
+                                        elevations.push(elev);
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (elevations.length >= 4) { // Need at least 4 points for decent calculation
+                            // Calculate slope using simple gradient
+                            const aspect = calculateAspectFromWindow(elevations);
+                            slopeData.push({
+                                ...p,
+                                slope: null, // Could calculate slope too if needed
+                                aspect: aspect
+                            });
+                        }
+                    }
+                }
+                
+                return { success: true, tile: key };
+            } catch (error) {
+                console.warn(`Failed to process tile ${key} for slope:`, error);
+                return { success: false, tile: key, error: error.message };
+            }
+        });
+        
+        await Promise.allSettled(batchPromises);
+        
+        // Update progress
+        const progressPercent = Math.min(100, (i / tileKeys.length) * 100);
+        console.log(`Slope calculation progress: ${progressPercent.toFixed(1)}%`);
+    }
+    
+    return slopeData;
+}
+
+// Function to calculate aspect from a 3x3 elevation window
+function calculateAspectFromWindow(elevations) {
+    // Assuming elevations are in this order for a 3x3 window:
+    // [NW, N, NE, W, C, E, SW, S, SE]
+    
+    if (elevations.length !== 9) {
+        // Use simple gradient if we don't have full window
+        return calculateSimpleAspect(elevations);
+    }
+    
+    // Calculate dz/dx and dz/dy using Horn's method
+    const dz_dx = ((elevations[2] + 2*elevations[5] + elevations[8]) - 
+                   (elevations[0] + 2*elevations[3] + elevations[6])) / 8;
+    
+    const dz_dy = ((elevations[6] + 2*elevations[7] + elevations[8]) - 
+                   (elevations[0] + 2*elevations[1] + elevations[2])) / 8;
+    
+    // Calculate aspect (in degrees, 0 = North, 90 = East, etc.)
+    let aspect = Math.atan2(dz_dy, -dz_dx) * (180 / Math.PI);
+    
+    // Convert to compass bearing (0-360, clockwise from North)
+    if (aspect < 0) {
+        aspect = 360 + aspect;
+    }
+    
+    // Adjust so 0 is North
+    aspect = (aspect + 180) % 360;
+    
+    return aspect;
+}
+
+// Simple aspect calculation for partial data
+function calculateSimpleAspect(elevations) {
+    // Simple fallback: use center vs average of available points
+    if (elevations.length < 2) return null;
+    
+    const centerIndex = Math.floor(elevations.length / 2);
+    const centerElev = elevations[centerIndex];
+    
+    // Calculate average elevation difference in each direction
+    let dx = 0, dy = 0;
+    let countX = 0, countY = 0;
+    
+    // Simple gradient calculation
+    for (let i = 0; i < elevations.length; i++) {
+        if (i !== centerIndex) {
+            const diff = elevations[i] - centerElev;
+            // Simple directional weighting
+            if (i % 3 === 0) { // Left column
+                dx -= diff;
+                countX++;
+            } else if (i % 3 === 2) { // Right column
+                dx += diff;
+                countX++;
+            }
+            if (i < 3) { // Top row
+                dy -= diff;
+                countY++;
+            } else if (i > 5) { // Bottom row
+                dy += diff;
+                countY++;
+            }
+        }
+    }
+    
+    if (countX === 0 || countY === 0) return null;
+    
+    dx /= countX;
+    dy /= countY;
+    
+    // Calculate aspect
+    if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) {
+        return 0; // Flat terrain
+    }
+    
+    let aspect = Math.atan2(dy, dx) * (180 / Math.PI);
+    aspect = (360 + 90 - aspect) % 360; // Convert to compass bearing
+    
+    return aspect;
+}
+
+// Function to create compass visualization
+function createCompassVisualization(aspectBuckets) {
+    const compassRose = document.getElementById('compassRose');
+    const compassStats = document.getElementById('compassStats');
+    
+    if (!compassRose || !compassStats) return;
+    
+    // Clear existing content
+    compassRose.innerHTML = '';
+    compassStats.innerHTML = '';
+    
+    // Find maximum count for scaling
+    const counts = Object.values(aspectBuckets).map(b => b.count);
+    const maxCount = Math.max(...counts);
+    const totalObservations = counts.reduce((a, b) => a + b, 0);
+    
+    // Define aspect colors
+	const aspectColors = {
+		'Flat': '#a1a1a1',
+		'N': '#8dc458',
+		'NE': '#3dab71',
+		'E': '#5078b6',
+		'SE': '#77009d',
+		'S': '#c04d9c',
+		'SW': '#e76f7a',
+		'W': '#e2a66c',
+		'NW': '#d6db5e'
+	};
+    
+    // Create Flat direction in the center
+    const center = document.createElement('div');
+    center.className = 'compass-center';
+    center.title = 'Flat terrain';
+    
+    // Add click handler for Flat
+    center.onclick = () => {
+        if (aspectBuckets.Flat.count > 0) {
+            showObservationsByAspect('Flat');
+        }
+    };
+    
+    // Set color for Flat
+    center.style.backgroundColor = aspectColors.Flat;
+    
+    // Add content to center
+    center.innerHTML = `
+        <div class="label">Flat</div>
+        <div class="count">${aspectBuckets.Flat.count}</div>
+    `;
+    
+    compassRose.appendChild(center);
+    
+    // Define positions for compass directions (in percentage from center)
+	const directions = [
+		{ name: 'N', angle: 0, x: 50, y: 15 },
+		{ name: 'NE', angle: 45, x: 75, y: 25 },
+		{ name: 'E', angle: 90, x: 85, y: 50 },
+		{ name: 'SE', angle: 135, x: 75, y: 75 },
+		{ name: 'S', angle: 180, x: 50, y: 85 },
+		{ name: 'SW', angle: 225, x: 25, y: 75 },
+		{ name: 'W', angle: 270, x: 15, y: 50 },
+		{ name: 'NW', angle: 315, x: 25, y: 25 }
+	];
+    
+    // Create direction markers
+    directions.forEach(dir => {
+        const dirDiv = document.createElement('div');
+        dirDiv.className = 'compass-direction';
+        dirDiv.title = dir.name;
+        
+        // Set position
+        dirDiv.style.left = `${dir.x}%`;
+        dirDiv.style.top = `${dir.y}%`;
+        dirDiv.style.transform = 'translate(-50%, -50%)';
+        
+        // Set color based on aspect
+        dirDiv.style.backgroundColor = aspectColors[dir.name];
+        dirDiv.style.color = getContrastColor(aspectColors[dir.name]);
+        
+        // Set size based on count (scaled to max count)
+        if (aspectBuckets[dir.name] && aspectBuckets[dir.name].count > 0) {
+            const baseSize = 25;
+            const sizeMultiplier = maxCount > 0 ? (aspectBuckets[dir.name].count / maxCount) : 0;
+            const size = baseSize + (sizeMultiplier * 25); // 35-60px range
+            
+            dirDiv.style.width = `${size}px`;
+            dirDiv.style.height = `${size}px`;
+            dirDiv.style.fontSize = `${Math.min(13, 10 + size/15)}px`;
+        }
+        
+        // Add content with count
+        dirDiv.innerHTML = `
+            <div>${dir.name}</div>
+            <div class="count">${aspectBuckets[dir.name]?.count || 0}</div>
+        `;
+        
+        // Add click handler
+        if (aspectBuckets[dir.name] && aspectBuckets[dir.name].count > 0) {
+            dirDiv.onclick = () => showObservationsByAspect(dir.name);
+        } else {
+            dirDiv.style.opacity = '0.5';
+            dirDiv.style.cursor = 'default';
+        }
+        
+        compassRose.appendChild(dirDiv);
+    });
+    
+    // Create stats grid (without % Flat)
+    const mostCommon = findMostCommonAspect(aspectBuckets);
+    const mostCommonColor = mostCommon.name ? aspectColors[mostCommon.name] : '#95a5a6';
+    
+    const statsHTML = `
+        <div class="compass-stat-item">
+            <div class="compass-stat-label">Total Obs</div>
+            <div class="compass-stat-value">${totalObservations.toLocaleString()}</div>
+        </div>
+        <div class="compass-stat-item">
+            <div class="compass-stat-label">Most Common</div>
+            <div class="compass-stat-value" id="mostCommonAspect" style="color: ${mostCommonColor}">
+                ${mostCommon.name || 'None'}
+            </div>
+        </div>
+    `;
+    
+    compassStats.innerHTML = statsHTML;
+    
+    // Store reference to most common element for updating later
+    window.mostCommonAspectElement = document.getElementById('mostCommonAspect');
+}
+
+// Helper function to find most common aspect
+function findMostCommonAspect(aspectBuckets) {
+    let mostCommon = { name: null, count: 0 };
+    
+    // Skip Flat from being considered as "most common" for compass directions
+    Object.entries(aspectBuckets).forEach(([name, data]) => {
+        if (name !== 'Flat' && data.count > mostCommon.count) {
+            mostCommon = { name, count: data.count };
+        }
+    });
+    
+    return mostCommon;
+}
+
+// Helper function to get contrast color for text
+function getContrastColor(hexColor) {
+    // Convert hex to RGB
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    
+    // Calculate luminance
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    
+    // Return black or white based on luminance
+    return luminance > 0.5 ? '#000000' : '#ffffff';
+}
+
+
+// Function to show observations by aspect
+function showObservationsByAspect(aspect) {
+    if (!slopeAspectData || slopeAspectData.length === 0) {
+        console.log('No slope aspect data available');
+        return;
+    }
+    
+    // Clear previous aspect markers
+    clearAspectMarkers();
+    
+    // Filter observations by aspect
+    const filteredObservations = slopeAspectData.filter(item => 
+        item.aspectCategory === aspect
+    );
+    
+    if (filteredObservations.length === 0) {
+        console.log(`No observations found for aspect: ${aspect}`);
+        return;
+    }
+    
+    console.log(`Found ${filteredObservations.length} observations with aspect: ${aspect}`);
+    
+    // Remove highlight from most common aspect in stats
+    if (window.mostCommonAspectElement) {
+        window.mostCommonAspectElement.style.fontWeight = 'normal';
+        window.mostCommonAspectElement.style.textDecoration = 'none';
+    }
+    
+    // Create marker cluster for this aspect
+    aspectCluster = L.markerClusterGroup({
+        maxClusterRadius: 40,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        iconCreateFunction: function(cluster) {
+            const count = cluster.getChildCount();
+            const color = getAspectColor(aspect);
+            
+            return L.divIcon({
+                html: `<div style="
+                    background-color: ${color};
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 50%;
+                    border: 2px solid white;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: ${getContrastColor(color)};
+                    font-weight: bold;
+                    font-size: 12px;
+                ">
+                    ${count}
+                </div>`,
+                className: 'aspect-marker-cluster',
+                iconSize: [30, 30]
+            });
+        }
+    });
+    
+    // Create individual markers
+    filteredObservations.forEach(item => {
+        const color = getAspectColor(aspect);
+        const marker = L.circleMarker([item.lat, item.lng], {
+            radius: 6,
+            fillColor: color,
+            color: '#ffffff',
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 1
+        });
+        
+        // Create popup content
+        const popupContent = createAspectPopupContent(item, aspect);
+        marker.bindPopup(popupContent);
+        
+        // Add to cluster
+        aspectCluster.addLayer(marker);
+    });
+    
+    // Add cluster to map
+    aspectCluster.addTo(mymap);
+    
+    // Fit map to show all markers
+    if (filteredObservations.length > 0) {
+        const bounds = aspectCluster.getBounds();
+        if (bounds.isValid()) {
+            mymap.fitBounds(bounds.pad(0.1));
+        }
+    }
+    
+    // Update compass visualization to show active aspect
+    updateCompassSelection(aspect);
+    currentSelectedAspect = aspect;
+    
+    // Show the clear markers button
+    showClearMarkersButton();
+}
+
+// Function to get color for aspect
+function getAspectColor(aspect) {
+    const colors = {
+        'Flat': '#a1a1a1',  // Gray
+        'N': '#8dc458',     // Green
+        'NE': '#3dab71',    // Teal Green
+        'E': '#5078b6',     // Blue
+        'SE': '#77009d',    // Purple
+        'S': '#c04d9c',     // Magenta
+        'SW': '#e76f7a',    // Coral Pink
+        'W': '#e2a66c',     // Peach
+        'NW': '#d6db5e'     // Lime Yellow
+    };
+    
+    return colors[aspect] || '#a1a1a1'; // Fallback to gray if aspect not found
+}
+
+// Function to create popup content for aspect markers
+function createAspectPopupContent(item, aspect) {
+    const obs = item.observation;
+    const taxonName = obs.taxon?.preferred_common_name || obs.taxon?.name || 'Unknown';
+    const observer = obs.user?.login || 'Unknown';
+    const photoUrl = obs.photos?.[0]?.square_url || obs.photos?.[0]?.url || '';
+    const color = getAspectColor(aspect);
+    
+    return `
+        <div style="max-width: 250px;">
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                ${photoUrl ? '<img src="' + photoUrl + '" style="width: 60px; height: 60px; object-fit: cover; margin-right: 10px; border-radius: 3px;">' : 
+                  '<div style="width: 60px; height: 60px; margin-right: 10px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 3px; color: #999; font-size: 12px;">No photo</div>'}
+                <div style="flex: 1;">
+                    <strong style="font-size: 14px; display: block; margin-bottom: 3px;">${taxonName}</strong>
+                    <div style="font-size: 11px; color: ${color}; font-weight: bold; margin-bottom: 3px;">
+                        ${aspect} Aspect (${item.aspectDegrees?.toFixed(1) || '?'}°)
+                    </div>
+                    <div style="font-size: 11px; color: #666; margin-bottom: 5px;">By: ${observer}</div>
+                </div>
+            </div>
+            <div style="font-size: 11px; margin-bottom: 8px;">
+                <strong>Location:</strong> ${item.lat.toFixed(6)}, ${item.lng.toFixed(6)}<br>
+                <strong>Elevation:</strong> ${item.elevation ? Math.round(item.elevation) + ' ft' : 'Unknown'}<br>
+                <strong>Observed:</strong> ${obs.observed_on || 'Unknown date'}
+            </div>
+            <a href="https://www.inaturalist.org/observations/${obs.id}" target="_blank" 
+               style="display: block; text-align: center; background: ${color}; color: white; padding: 6px; border-radius: 4px; text-decoration: none; font-size: 12px;">
+                View on iNaturalist
+            </a>
+        </div>
+    `;
+}
+
+// Function to update compass selection
+function updateCompassSelection(aspect) {
+    // Remove active class from all directions and center
+    const directions = document.querySelectorAll('.compass-direction, .compass-center');
+    directions.forEach(dir => {
+        dir.classList.remove('active');
+        dir.classList.remove('highlight');
+    });
+    
+    // Add active class to selected aspect
+    let selectedElement;
+    if (aspect === 'Flat') {
+        selectedElement = document.querySelector('.compass-center');
+    } else {
+        selectedElement = document.querySelector(`.compass-direction[title="${aspect}"]`);
+    }
+    
+    if (selectedElement) {
+        selectedElement.classList.add('active');
+    }
+}
+
+// Function to show the clear markers button
+function showClearMarkersButton() {
+    const clearBtn = document.getElementById('clearMarkersBtn');
+    if (clearBtn) {
+        clearBtn.style.display = 'inline-block';
+    }
+}
+
+// Function to hide the clear markers button
+function hideClearMarkersButton() {
+    const clearBtn = document.getElementById('clearMarkersBtn');
+    if (clearBtn) {
+        clearBtn.style.display = 'none';
+    }
+}
+
+// Function to clear aspect markers (update this function)
+function clearAspectMarkers() {
+    if (aspectCluster) {
+        mymap.removeLayer(aspectCluster);
+        aspectCluster = null;
+        console.log('Aspect markers cleared from map');
+    }
+    
+    // Reset compass selection
+    if (currentSelectedAspect) {
+        let selectedElement;
+        if (currentSelectedAspect === 'Flat') {
+            selectedElement = document.querySelector('.compass-center');
+        } else {
+            selectedElement = document.querySelector(`.compass-direction[title="${currentSelectedAspect}"]`);
+        }
+        
+        if (selectedElement) {
+            selectedElement.classList.remove('active');
+        }
+        
+        // Restore most common aspect styling
+        if (window.mostCommonAspectElement) {
+            window.mostCommonAspectElement.style.fontWeight = '600';
+        }
+        
+        currentSelectedAspect = null;
+    }
+    
+    // Hide the clear markers button
+    hideClearMarkersButton();
+}
+
+// Function to toggle compass visibility
+function toggleSlopeAspectCompass() {
+    const compass = document.getElementById('slopeAspectCompass');
+    const btn = document.getElementById('minimizeMarkersBtn');
+    
+    if (compass.classList.contains('minimized')) {
+        compass.classList.remove('minimized');
+        btn.innerHTML = '−';
+        btn.title = "Minimize";
+		showClearMarkersButton();
+    } else {
+        compass.classList.add('minimized');
+        btn.innerHTML = '🧭';
+        btn.title = "Slope Aspect";
+		hideClearMarkersButton();
+    }
+}
+
 // Autocomplete functions with place_id support
 function handleTaxonSearch(event) {
    if (event.key === 'Enter') {
@@ -3514,8 +4482,8 @@ function toggleElevationHistogram() {
       elevationHistogramVisible = true;
    } else {
       histogram.classList.add('minimized');
-      btn.innerHTML = '↕';
-      btn.title = "Restore";
+      btn.innerHTML = '⛰️';
+      btn.title = "Elevation Histogram";
       elevationHistogramVisible = false;
    }
 }
@@ -3718,6 +4686,10 @@ async function collectElevationData() {
         // Create histogram if we have data
         if (elevationData.length > 0) {
             createHorizontalHistogram();
+			// Small delay to ensure histogram is visible
+			setTimeout(() => {
+				calculateSlopeAspects();
+			}, 1000);
         } else {
             showNoElevationDataMessage();
         }
@@ -3741,6 +4713,11 @@ async function collectElevationData() {
         }
     }
 }
+
+// Expose functions globally
+window.toggleSlopeAspectCompass = toggleSlopeAspectCompass;
+window.showObservationsByAspect = showObservationsByAspect;
+window.clearAspectMarkers = clearAspectMarkers;
 
 // Function to cancel elevation lookup
 function cancelElevationLookup() {
