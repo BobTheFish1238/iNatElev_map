@@ -361,6 +361,15 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
    }
+
+	.histogram-controls .close-btn {
+		top: 18px;
+	}
+
+	.elevation-histogram.minimized .histogram-controls .close-btn {
+		top: 4px;
+		left: 6px;
+	}
    
    .elevation-histogram.minimized {
       left: 5px;
@@ -370,7 +379,8 @@
    }
    
    .elevation-histogram.minimized .histogram-content,
-   .elevation-histogram.minimized .histogram-title {
+   .elevation-histogram.minimized .histogram-title,
+   .elevation-histogram.minimized .show-markers-btn{
       display: none;
    }
    
@@ -389,10 +399,12 @@
       letter-spacing: -0.2px;
    }
    
-   .histogram-controls {
-      display: flex;
-      gap: 4px;
-   }
+	.histogram-controls {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-left: 10px;
+	}
    
    .histogram-controls button {
       background: none;
@@ -490,7 +502,6 @@
    
    .histogram-bar {
       height: 70%;
-      background: linear-gradient(90deg, #3498db, #2980b9);
       border-radius: 4px;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
@@ -717,14 +728,15 @@
 
 	.elevation-histogram.loading .histogram-container,
 	.elevation-histogram.loading .histogram-stats,
-	.elevation-histogram.loading .histogram-x-axis {
+	.elevation-histogram.loading .histogram-x-axis,
+	.elevation-histogram.loading .histogram-controls {
 		display: none !important;
 	}
 
 	/* Observation List Panel */
 	.observation-list-panel {
 		position: absolute;
-		top: 80px;
+		top: 60px;
 		right: 10px;
 		width: 320px;
 		max-height: 80vh;
@@ -757,8 +769,7 @@
 		justify-content: center;
 	}
 
-	.observation-list-panel.minimized .observation-list-header h3,
-	.observation-list-panel.minimized .observation-list-controls button:first-child,
+	.observation-list-panel.minimized #observationListTitle,
 	.observation-list-panel.minimized .observation-list-footer {
 		display: none;
 	}
@@ -1080,7 +1091,7 @@
 		bottom: 35px;
 		right: 10px;
 		width: 200px;
-		height: 300px;
+		height: 280px;
 		background: white;
 		border-radius: 8px;
 		box-shadow: 0 4px 20px rgba(0,0,0,0.15);
@@ -1100,8 +1111,16 @@
 		right: 10px;
 	}
 
+	.slope-aspect-compass.minimized #minimizeMarkersBtn {
+		background: white;
+		border-radius: 0px;
+		font-size: 20px;
+	}
+
 	.slope-aspect-compass.minimized .compass-content,
-	.slope-aspect-compass.minimized .compass-title {
+	.slope-aspect-compass.minimized .compass-title,
+	.slope-aspect-compass.minimized #showAspectMarkersBtn,
+	.slope-aspect-compass.minimized #clearMarkersBtn {
 		display: none;
 	}
 
@@ -1122,7 +1141,10 @@
 
 	.compass-controls {
 		display: flex;
-		gap: 4px;
+		gap: 8px;
+		align-items: center;
+		background: rgba(192,192,192,0.3);
+		color: #2c3e50;
 	}
 
 	.compass-controls button {
@@ -1151,7 +1173,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 16px;
+		gap: 0px;
 	}
 
 	.compass-rose {
@@ -1309,40 +1331,81 @@
 		text-align: center;
 	}
 
-	.compass-controls button[title="Clear Markers"], {
+	/* Style the hide all button in header */
+	.compass-controls:hover, {
+		background: rgba(192,192,192,0.4);
+	}
+
+	/* Clustering Toggle Styles */
+	.clustering-toggle {
+		margin-top: 10px;
+		padding: 8px 12px;
+		background: #f8f9fa;
+		border: 1px solid #dee2e6;
+		border-radius: 4px;
+		font-size: 12px;
+	}
+
+	.clustering-toggle label {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		cursor: pointer;
+		font-size: 12px;
+		color: #495057;
+	}
+
+	.clustering-toggle input[type="checkbox"] {
+		width: 16px;
+		height: 16px;
+		margin-left: 8px;
+		cursor: pointer;
+	}
+
+	/* Histogram Clustering Controls */
+	.elevation-histogram .show-markers-btn {
 		padding: 6px 12px;
-		font-size: 11px;
-		background: rgba(192,192,192,0.3);
-		color: white;
+		font-size: 10px;
+		background: #d8d9da;
+		color: black;
 		border: none;
 		border-radius: 4px;
 		cursor: pointer;
 		transition: all 0.2s ease;
-		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-		display: flex;
-		align-items:center;
-		justify-content:center"
 	}
 
-	#clearMarkersBtn:hover {
-		background: #c0392b;
+	.show-markers-btn:hover {
+		background: #8e44ad;
 		transform: translateY(-1px);
-		box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 	}
 
-	#clearMarkersBtn:active {
-		transform: translateY(0);
-		box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+	.show-markers-btn:disabled {
+		background: #95a5a6;
+		cursor: not-allowed;
+		transform: none;
 	}
 
-	/* Style the trash button in header */
-	.compass-controls {
-		background: rgba(192,192,192,0.3);
-		color: #2c3e50;
+	/* Compass Clustering Controls */
+	.compass-controls .show-aspect-markers-btn {
+		padding: 6px 12px;
+		font-size: 10px;
+		background: #d8d9da;
+		color: black;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+		transition: all 0.2s ease;
 	}
 
-	.compass-controls:hover, {
-		background: rgba(192,192,192,0.4);
+	.show-aspect-markers-btn:hover {
+		background: #8e44ad;
+		transform: translateY(-1px);
+	}
+
+	.show-aspect-markers-btn:disabled {
+		background: #95a5a6;
+		cursor: not-allowed;
+		transform: none;
 	}
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -2130,13 +2193,20 @@ L.gridLayer.utfGridCompare = function (options) {
                </div>
             </div>
          </div>
-         
-         <div class="row" style="margin-top: 15px;">
-            <div class="col-xs-12">
-               <button class="btn btn-primary" onclick="applyAllFilters()">Update Search</button>
-               <button class="btn" onclick="resetAllFilters()">Reset Filters</button>
-            </div>
-         </div>
+		<div class="row" style="margin-top: 15px;">
+			<div class="col-xs-12" style="display: flex; justify-content: space-between; align-items: center;">
+				<div>
+					<button class="btn btn-primary" onclick="applyAllFilters()">Update Search</button>
+					<button class="btn" onclick="resetAllFilters()">Reset Filters</button>
+				</div>
+				<div class="clustering-toggle" style="margin-top: 0;">
+					<label>
+						Enable Marker Clustering
+						<input type="checkbox" id="clustering-toggle" onchange="toggleClustering()">
+					</label>
+				</div>
+			</div>
+		</div>
       </div>
    </div>
 </div>
@@ -2145,7 +2215,9 @@ L.gridLayer.utfGridCompare = function (options) {
 	<div class="compass-header">
 		<h3 class="compass-title">Slope Aspect</h3>
 		<div class="compass-controls">
-			<button onclick="clearAspectMarkers()" id="clearMarkersBtn" title="Clear Markers" style="font-size: 14px;">🗑️</button>
+			<button class="show-aspect-markers-btn" id="showAspectMarkersBtn" onclick="showAllAspectMarkers()" title="Show all">
+				Show All
+			</button>
 			<button onclick="toggleSlopeAspectCompass()" id="minimizeMarkersBtn" title="Minimize">−</button>
 		</div>
 	</div>
@@ -2158,13 +2230,9 @@ L.gridLayer.utfGridCompare = function (options) {
 			<div class="compass-rose" id="compassRose"></div>
 			<div class="compass-stats" id="compassStats"></div>
 			<div class="compass-footer" style="margin-top: 10px; text-align: center;">
-				<button id="clearMarkersBtn" onclick="clearAspectMarkers()" 
-						style="display: none; padding: 6px 12px; font-size: 11px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
-					Clear Map Markers
-				</button>
 				<button id="minimizeMarkersBtn" onclick="toggleSlopeAspectCompass()" 
 						style="display: none; padding: 6px 12px; font-size: 11px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
-					Clear Map Markers
+					Minimize
 				</button>
 			</div>
 		</div>
@@ -2175,6 +2243,645 @@ L.gridLayer.utfGridCompare = function (options) {
 let filters = new Map();
 let selectedPlaceId = null;
 let isFiltersVisible = false;
+
+// Global clustering variables
+let clusteringEnabled = false;
+let elevationMarkersLayer = null;
+let aspectMarkersLayer = null;
+let currentElevationMarkers = [];
+let currentAspectMarkers = [];
+let elevationMarkersVisible = false;
+let aspectMarkersVisible = false;
+let aspectRoseClicked = false;
+let elevationBarClicked = false;
+
+// Function to toggle clustering globally
+function toggleClustering() {
+    const toggle = document.getElementById('clustering-toggle');
+    clusteringEnabled = toggle.checked;
+    
+    console.log(`Clustering toggled: ${clusteringEnabled} (checkbox: ${toggle.checked})`);
+    
+    // Update any currently visible markers
+    if (elevationMarkersVisible && !elevationBarClicked) {
+        console.log('Refreshing elevation markers...');
+        refreshElevationMarkers();
+    }
+    if (aspectMarkersVisible && !aspectRoseClicked) {
+        console.log('Refreshing aspect markers...');
+        refreshAspectMarkers();
+    }
+    
+    // Refresh monthly view if active
+    if (monthlyObservationData.length > 0) {
+        const currentView = new URLSearchParams(window.location.search).get('view');
+        if (currentView === 'monthly') {
+            console.log('Refreshing monthly view...');
+            clearMonthlyView();
+            createMonthlyMarkers(monthlyObservationData);
+        }
+    }
+    
+    // Refresh showObservationsInRange if active
+    if (currentObservations && currentObservations.length > 0 && elevationBarClicked) {
+        console.log('Refreshing observation range markers...');
+        clearObservationMarkers();
+        createMarkersForAllObservations();
+    }
+
+    // Refresh showObservationsByAspect if active
+	if (currentSelectedAspect != null && aspectRoseClicked) {
+		console.log('Refreshing selected aspect markers:', currentSelectedAspect);
+		showObservationsByAspect(currentSelectedAspect);
+	}
+}
+
+// Function to update URL parameter without page reload
+function updateClusteringURLParam(enabled) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('clustering', enabled.toString());
+    
+    // Update URL without reloading page
+    const newUrl = window.location.pathname + '?' + params.toString();
+    window.history.replaceState({}, '', newUrl);
+    
+    console.log(`Updated URL clustering param to: ${enabled}`);
+}
+
+// Save state when closing filters
+function saveClusteringState() {
+    const toggle = document.getElementById('clustering-toggle');
+    if (toggle) {
+        updateClusteringURLParam(toggle.checked);
+    }
+}
+
+// Helper function to create marker layer based on clustering setting
+function createMarkerLayer(options = {}) {
+    if (clusteringEnabled) {
+        const defaultOptions = {
+            maxClusterRadius: 40,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true,
+            disableClusteringAtZoom: 18
+        };
+        return L.markerClusterGroup({...defaultOptions, ...options});
+    } else {
+        return L.layerGroup();
+    }
+}
+
+// Helper function to add marker to appropriate layer
+function addMarkerToLayer(marker, layer) {
+    if (clusteringEnabled && layer.addLayer) {
+        // For marker cluster groups
+        layer.addLayer(marker);
+    } else if (layer.addLayer) {
+        // For layer groups
+        marker.addTo(layer);
+    } else {
+        // For simple layers
+        marker.addTo(layer);
+    }
+}
+
+// Function to show all elevation markers
+function showAllElevationMarkers() {
+    const btn = document.getElementById('showElevationMarkersBtn');
+    const aspbtn = document.getElementById('showAspectMarkersBtn');
+    
+    if (elevationMarkersVisible || elevationBarClicked) {
+        // Hide markers
+        btn.textContent = 'Show All';
+        btn.style.background = '#d8d9da';
+        elevationMarkersVisible = false;
+		elevationBarClicked = false;
+        // Remove markers
+        clearObservationMarkers();
+        clearElevationMarkers();
+    } else {
+        // Show markers
+        // Create elevation markers
+		if (!elevationBarClicked) {
+			createElevationMarkers();
+		}
+        btn.textContent = 'Hide All';
+        btn.style.background = '#e74c3c';
+        elevationMarkersVisible = true;
+        clearObservationMarkers();
+
+		// Clear aspect markers
+        clearAspectMarkers();
+		aspectMarkersVisible = false;
+		aspectRoseClicked = false;
+		aspbtn.textContent = 'Show All';
+		aspbtn.style.background = '#d8d9da';
+    }
+}
+
+// Function to create elevation markers
+function createElevationMarkers() {
+    clearElevationMarkers();
+    
+    if (!elevationData || elevationData.length === 0) {
+        showNotification('No elevation data available');
+        return;
+    }
+    
+    console.log(`Creating ${elevationData.length} elevation markers`);
+    console.log(`clusteringEnabled: ${clusteringEnabled}`);
+    
+    if (clusteringEnabled) {
+        console.log('Creating CLUSTERED elevation markers');
+        // Create clustered markers
+        createClusteredElevationMarkers();
+    } else {
+        console.log('Creating INDIVIDUAL elevation markers');
+        // Create individual markers
+        createIndividualElevationMarkers();
+    }
+}
+
+// Function to create clustered elevation markers
+function createClusteredElevationMarkers() {
+    // Group observations by elevation range (500ft intervals)
+    const groups = {};
+    
+    elevationData.forEach(obs => {
+        const elevation = obs.elevation;
+        const rangeKey = Math.floor(elevation / 500) * 500; // Group by 500ft ranges
+        
+        if (!groups[rangeKey]) {
+            groups[rangeKey] = {
+                color: getElevationColor(rangeKey + 250), // Middle of range
+                observations: []
+            };
+        }
+        
+        groups[rangeKey].observations.push(obs);
+    });
+    
+    // Create a cluster for each elevation range
+    Object.entries(groups).forEach(([rangeKey, group]) => {
+        const color = group.color;
+        const cluster = L.markerClusterGroup({
+            maxClusterRadius: 40,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true,
+            iconCreateFunction: function(cluster) {
+                const count = cluster.getChildCount();
+                return L.divIcon({
+                    html: `<div style="
+                        background-color: ${color};
+                        width: 30px;
+                        height: 30px;
+                        border-radius: 50%;
+                        border: 2px solid white;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: ${getContrastColor(color)};
+                        font-weight: bold;
+                        font-size: 12px;
+                    ">
+                        ${count}
+                    </div>`,
+                    className: 'elevation-marker-cluster',
+                    iconSize: [30, 30]
+                });
+            }
+        });
+        
+        // Add markers to cluster
+        group.observations.forEach(obsData => {
+            const marker = L.circleMarker([obsData.lat, obsData.lng], {
+                radius: 4,
+                fillColor: color,
+                color: '#ffffff',
+                weight: 1,
+                opacity: 0.8,
+                fillOpacity: 0.7
+            });
+            
+            // Bind popup
+            const popupContent = createElevationPopupContent(obsData);
+            marker.bindPopup(popupContent);
+            
+            cluster.addLayer(marker);
+        });
+        
+        cluster.addTo(mymap);
+        currentElevationMarkers.push(cluster);
+    });
+    
+    // Fit map to show all clusters
+    if (currentElevationMarkers.length > 0) {
+        const bounds = L.featureGroup(currentElevationMarkers).getBounds();
+        if (bounds.isValid()) {
+            mymap.fitBounds(bounds.pad(0.1));
+        }
+    }
+}
+
+// Function to create individual elevation markers
+function createIndividualElevationMarkers() {
+    console.log('Creating individual elevation markers...');
+    
+    // Clear any existing markers first
+    clearElevationMarkers();
+    
+    // Use FeatureGroup instead of LayerGroup for better bounds calculation
+    elevationMarkersLayer = L.featureGroup();
+    
+    console.log('Created new elevationMarkersLayer (FeatureGroup):', elevationMarkersLayer);
+    console.log('elevationData length:', elevationData.length);
+    
+    elevationData.forEach((obsData, index) => {
+        const color = getElevationColor(obsData.elevation);
+        
+        const marker = L.circleMarker([obsData.lat, obsData.lng], {
+            radius: 5,
+            fillColor: color,
+            color: '#ffffff',
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.8
+        });
+        
+        // Bind popup
+        const popupContent = createElevationPopupContent(obsData);
+        marker.bindPopup(popupContent);
+        
+        // Add to the feature group
+        elevationMarkersLayer.addLayer(marker);
+        currentElevationMarkers.push(marker);
+        
+        console.log(`Added marker ${index + 1} to elevationMarkersLayer`);
+    });
+    
+    // Add the feature group to the map
+    elevationMarkersLayer.addTo(mymap);
+    console.log('Added elevationMarkersLayer to map');
+    
+    // Fit map to show all markers - FeatureGroup has reliable getBounds()
+    if (currentElevationMarkers.length > 0) {
+        console.log('Getting bounds from elevationMarkersLayer...');
+        try {
+            const bounds = elevationMarkersLayer.getBounds();
+            console.log('Bounds:', bounds);
+            
+            if (bounds.isValid()) {
+                console.log('Bounds are valid, fitting map...');
+                mymap.fitBounds(bounds.pad(0.1));
+            } else {
+                console.log('Bounds are not valid');
+                // Fallback: calculate bounds manually
+                fitBoundsManually(currentElevationMarkers);
+            }
+        } catch (error) {
+            console.error('Error getting bounds:', error);
+            // Fallback: calculate bounds manually
+            fitBoundsManually(currentElevationMarkers);
+        }
+    } else {
+        console.log('No elevation markers to show bounds for');
+    }
+}
+
+// Function to create elevation popup content
+function createElevationPopupContent(obsData) {
+    const obs = obsData.observation;
+    const taxonName = obs.taxon?.preferred_common_name || obs.taxon?.name || 'Unknown';
+    const observer = obs.user?.login || 'Unknown';
+    const photoUrl = obs.photos?.[0]?.square_url || obs.photos?.[0]?.url || '';
+    const color = getElevationColor(obsData.elevation);
+    
+    return `
+        <div style="max-width: 250px;">
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                ${photoUrl ? '<img src="' + photoUrl + '" style="width: 60px; height: 60px; object-fit: cover; margin-right: 10px; border-radius: 3px;">' : 
+                  '<div style="width: 60px; height: 60px; margin-right: 10px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 3px; color: #999; font-size: 12px;">No photo</div>'}
+                <div style="flex: 1;">
+                    <strong style="font-size: 14px; display: block; margin-bottom: 3px;">${taxonName}</strong>
+                    <div style="font-size: 11px; color: ${color}; font-weight: bold; margin-bottom: 3px;">
+                        ${Math.round(obsData.elevation)} ft
+                    </div>
+                    <div style="font-size: 11px; color: #666; margin-bottom: 5px;">By: ${observer}</div>
+                </div>
+            </div>
+            <div style="font-size: 11px; margin-bottom: 8px;">
+                <strong>Location:</strong> ${obsData.lat.toFixed(6)}, ${obsData.lng.toFixed(6)}<br>
+                <strong>Observed:</strong> ${obs.observed_on || 'Unknown date'}
+            </div>
+            <a href="https://www.inaturalist.org/observations/${obs.id}" target="_blank" 
+               style="display: block; text-align: center; background: ${color}; color: white; padding: 6px; border-radius: 4px; text-decoration: none; font-size: 12px;">
+                View on iNaturalist
+            </a>
+        </div>
+    `;
+}
+
+// Function to clear elevation markers
+function clearElevationMarkers() {
+    if (elevationMarkersLayer) {
+        mymap.removeLayer(elevationMarkersLayer);
+        elevationMarkersLayer = null;
+    }
+    
+    // Also clear any clustered markers
+    currentElevationMarkers.forEach(marker => {
+        if (marker && marker.remove) {
+            // If it's a cluster group
+            if (marker.removeLayer) {
+                mymap.removeLayer(marker);
+            } else if (marker.remove) {
+                // If it's an individual marker
+                marker.remove();
+            }
+        }
+    });
+    currentElevationMarkers = [];
+}
+
+// Function to refresh elevation markers (when clustering toggle changes)
+function refreshElevationMarkers() {
+    if (elevationMarkersVisible) {
+        console.log('Refreshing elevation markers with clustering:', clusteringEnabled);
+        // Clear and recreate
+        clearElevationMarkers();
+		createElevationMarkers();
+    }
+}
+
+// Function to show all aspect markers
+function showAllAspectMarkers() {
+    const btn = document.getElementById('showAspectMarkersBtn');
+	const elevbtn = document.getElementById('showElevationMarkersBtn');
+
+    if (aspectMarkersVisible || aspectRoseClicked) {
+        // HIDE
+        clearAspectMarkers();
+		aspectMarkersVisible = false;
+		aspectRoseClicked = false;
+		btn.textContent = 'Show All';
+		btn.style.background = '#d8d9da';
+    } else {
+        // SHOW
+		if (!aspectRoseClicked) {
+			createAspectMarkers();
+		}
+		aspectMarkersVisible = true;
+        btn.textContent = 'Hide All';
+        btn.style.background = '#e74c3c';
+
+		//Clear elevation markers
+        elevbtn.textContent = 'Show All';
+        elevbtn.style.background = '#d8d9da';
+        elevationMarkersVisible = false;
+		elevationBarClicked = false;
+        clearObservationMarkers();
+        clearElevationMarkers();
+    }
+}
+
+// Function to create aspect markers
+function createAspectMarkers() {
+    // Clear any existing aspect markers from showObservationsByAspect function
+    if (aspectCluster) {
+        mymap.removeLayer(aspectCluster);
+        aspectCluster = null;
+    }
+    
+    clearAspectMarkers();
+    
+    if (!slopeAspectData || slopeAspectData.length === 0) {
+        showNotification('No slope aspect data available');
+        return;
+    }
+    
+    console.log(`Creating ${slopeAspectData.length} aspect markers`);
+    console.log(`clusteringEnabled: ${clusteringEnabled}`);
+    
+    if (clusteringEnabled) {
+        console.log('Creating CLUSTERED aspect markers');
+        // Create clustered aspect markers
+        createClusteredAspectMarkers();
+    } else {
+        console.log('Creating INDIVIDUAL aspect markers');
+        // Create individual aspect markers
+        createIndividualAspectMarkers();
+    }
+}
+
+// Function to create clustered aspect markers
+function createClusteredAspectMarkers() {
+    // Group observations by aspect category
+    const groups = {};
+    
+    slopeAspectData.forEach(item => {
+        const aspect = item.aspectCategory;
+        
+        if (!groups[aspect]) {
+            groups[aspect] = {
+                color: getAspectColor(aspect),
+                observations: []
+            };
+        }
+        
+        groups[aspect].observations.push(item);
+    });
+    
+    // Create a cluster for each aspect category
+    Object.entries(groups).forEach(([aspect, group]) => {
+        const color = group.color;
+        const cluster = L.markerClusterGroup({
+            maxClusterRadius: 40,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true,
+            iconCreateFunction: function(cluster) {
+                const count = cluster.getChildCount();
+                return L.divIcon({
+                    html: `<div style="
+                        background-color: ${color};
+                        width: 30px;
+                        height: 30px;
+                        border-radius: 50%;
+                        border: 2px solid white;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: ${getContrastColor(color)};
+                        font-weight: bold;
+                        font-size: 12px;
+                    ">
+                        ${count}
+                    </div>`,
+                    className: 'aspect-marker-cluster',
+                    iconSize: [30, 30]
+                });
+            }
+        });
+        
+        // Add markers to cluster
+        group.observations.forEach(item => {
+            const marker = L.circleMarker([item.lat, item.lng], {
+                radius: 4,
+                fillColor: color,
+                color: '#ffffff',
+                weight: 1,
+                opacity: 0.8,
+                fillOpacity: 0.7
+            });
+            
+            // Bind popup
+            const popupContent = createAspectPopupContent(item, item.aspectCategory);
+            marker.bindPopup(popupContent);
+            
+            cluster.addLayer(marker);
+        });
+        
+        cluster.addTo(mymap);
+        currentAspectMarkers.push(cluster);
+    });
+    
+    // Fit map to show all clusters
+    if (currentAspectMarkers.length > 0) {
+        const bounds = L.featureGroup(currentAspectMarkers).getBounds();
+        if (bounds.isValid()) {
+            mymap.fitBounds(bounds.pad(0.1));
+        }
+    }
+}
+
+// Function to create individual aspect markers
+function createIndividualAspectMarkers() {
+    console.log('Creating individual aspect markers...');
+    
+    // Clear any existing markers first
+    clearAspectMarkers();
+    
+    // Use FeatureGroup instead of LayerGroup for better bounds calculation
+    aspectMarkersLayer = L.featureGroup();
+    
+    console.log('Created new aspectMarkersLayer (FeatureGroup):', aspectMarkersLayer);
+    console.log('slopeAspectData length:', slopeAspectData.length);
+    
+    slopeAspectData.forEach((item, index) => {
+        const color = getAspectColor(item.aspectCategory);
+        
+        const marker = L.circleMarker([item.lat, item.lng], {
+            radius: 5,
+            fillColor: color,
+            color: '#ffffff',
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.8
+        });
+        
+        // Bind popup
+        const popupContent = createAspectPopupContent(item, item.aspectCategory);
+        marker.bindPopup(popupContent);
+        
+        // Add to the feature group
+        aspectMarkersLayer.addLayer(marker);
+        currentAspectMarkers.push(marker);
+        
+        console.log(`Added marker ${index + 1} to aspectMarkersLayer`);
+    });
+    
+    // Add the feature group to the map
+    aspectMarkersLayer.addTo(mymap);
+    console.log('Added aspectMarkersLayer to map');
+    
+    // Fit map to show all markers - FeatureGroup has reliable getBounds()
+    if (currentAspectMarkers.length > 0) {
+        console.log('Getting bounds from aspectMarkersLayer...');
+        try {
+            const bounds = aspectMarkersLayer.getBounds();
+            console.log('Bounds:', bounds);
+            
+            if (bounds.isValid()) {
+                console.log('Bounds are valid, fitting map...');
+                mymap.fitBounds(bounds.pad(0.1));
+            } else {
+                console.log('Bounds are not valid');
+                // Fallback: calculate bounds manually
+                fitBoundsManually(currentAspectMarkers);
+            }
+        } catch (error) {
+            console.error('Error getting bounds:', error);
+            // Fallback: calculate bounds manually
+            fitBoundsManually(currentAspectMarkers);
+        }
+    } else {
+        console.log('No aspect markers to show bounds for');
+    }
+}
+
+// Function to clear aspect markers
+function clearAspectMarkers() {
+    // Clear markers from showObservationsByAspect function
+    if (aspectCluster) {
+        mymap.removeLayer(aspectCluster);
+        aspectCluster = null;
+    }
+    
+    // Clear markers from showAllAspectMarkers function
+    if (aspectMarkersLayer) {
+        mymap.removeLayer(aspectMarkersLayer);
+        aspectMarkersLayer = null;
+    }
+    
+    // Clear all markers from currentAspectMarkers array
+    currentAspectMarkers.forEach(marker => {
+        if (marker && marker.remove) {
+            if (marker.removeLayer) {
+                // If it's a cluster group
+                mymap.removeLayer(marker);
+            } else if (marker.remove) {
+                // If it's an individual marker
+                marker.remove();
+            }
+        }
+    });
+    currentAspectMarkers = [];
+    
+    // Reset compass selection
+    if (currentSelectedAspect) {
+        let selectedElement;
+        if (currentSelectedAspect === 'Flat') {
+            selectedElement = document.querySelector('.compass-center');
+        } else {
+            selectedElement = document.querySelector(`.compass-direction[title="${currentSelectedAspect}"]`);
+        }
+        
+        if (selectedElement) {
+            selectedElement.classList.remove('active');
+        }
+        
+        // Restore most common aspect styling
+        if (window.mostCommonAspectElement) {
+            window.mostCommonAspectElement.style.fontWeight = '600';
+        }
+        
+        currentSelectedAspect = null;
+    }
+}
+
+// Function to refresh aspect markers (when clustering toggle changes)
+function refreshAspectMarkers() {
+    if (aspectMarkersVisible) {
+        console.log('Refreshing aspect markers with clustering:', clusteringEnabled);
+        // Clear and recreate
+        clearAspectMarkers();
+        createAspectMarkers();
+    }
+}
 
 function toggleSearchControls() {
    const controls = document.querySelector('.search-controls');
@@ -2246,6 +2953,9 @@ function hideFilters() {
    filterContent.style.display = 'none';
    isFiltersVisible = false;
    document.removeEventListener('click', closeFiltersOnClickOutside);
+   
+   // Save clustering state when filters are closed
+   saveClusteringState();
 }
 
 function closeFiltersOnClickOutside(event) {
@@ -2282,6 +2992,16 @@ function updateFilter(param, value, isActive) {
 
 function toggleView(view) {
     filters.set('view', view);
+    
+    // Show/hide clustering toggle based on view
+    const clusteringToggle = document.querySelector('.clustering-toggle');
+    if (clusteringToggle) {
+        if (view === 'elevation' || view === 'monthly') {
+            clusteringToggle.style.display = 'block';
+        } else {
+            clusteringToggle.style.display = 'none';
+        }
+    }
     
     // Show/hide subsetratio params
     const subsetParams = document.getElementById('subsetratio-params');
@@ -2320,13 +3040,43 @@ let monthlyMarkers = {};
 let monthlyClusters = {};
 let monthlyObservationData = [];
 
-// Function to initialize monthly view (only called on page load if monthly view is active)
+// Initialize monthly view (only called on page load if monthly view is active)
 function initMonthlyView() {
     // Only initialize if we're in monthly view
     const currentView = new URLSearchParams(window.location.search).get('view');
     if (currentView === 'monthly') {
-        console.log('Initializing monthly view...');
-        fetchMonthlyObservations();
+        console.log('Initializing monthly view with clusteringEnabled:', clusteringEnabled);
+        // Small delay to ensure clustering state is initialized
+        setTimeout(() => {
+            fetchMonthlyObservations();
+        }, 100);
+    }
+}
+
+// Function to fix clustering if it's out of sync
+function fixClusteringSync() {
+    console.log('=== Fixing clustering sync ===');
+    console.log('Current clusteringEnabled:', clusteringEnabled);
+    console.log('Checkbox checked:', document.getElementById('clustering-toggle')?.checked);
+    console.log('URL param:', new URLSearchParams(window.location.search).get('clustering'));
+    
+    // Force sync from checkbox to global variable
+    const toggle = document.getElementById('clustering-toggle');
+    if (toggle && clusteringEnabled !== toggle.checked) {
+        console.log(`Fixing mismatch: clusteringEnabled (${clusteringEnabled}) ≠ checkbox (${toggle.checked})`);
+        clusteringEnabled = toggle.checked;
+        
+        // Refresh all visible markers
+        if (elevationMarkersVisible) refreshElevationMarkers();
+        if (aspectMarkersVisible) refreshAspectMarkers();
+        if (monthlyObservationData.length > 0) {
+            clearMonthlyView();
+            createMonthlyMarkers(monthlyObservationData);
+        }
+        if (currentObservations && currentObservations.length > 0) {
+            clearObservationMarkers();
+            createMarkersForAllObservations();
+        }
     }
 }
 
@@ -2520,89 +3270,131 @@ function createMonthlyMarkers(observations) {
             }
         });
         
-        // Create separate cluster groups for each month
+        // Create markers based on clustering setting
         Object.keys(observationsByMonth).forEach(month => {
             const monthNum = parseInt(month);
             const monthObservations = observationsByMonth[monthNum];
             
             if (monthObservations.length === 0) return;
             
-            // Create a marker cluster group for this month ONLY
-            const monthCluster = L.markerClusterGroup({
-                maxClusterRadius: 20, // Smaller cluster radius as requested
-                spiderfyOnMaxZoom: true,
-                showCoverageOnHover: false,
-                zoomToBoundsOnClick: true,
-                disableClusteringAtZoom: 18, // Stop clustering at high zoom
-                iconCreateFunction: function(cluster) {
-                    const count = cluster.getChildCount();
-                    const monthName = getMonthName(monthNum);
-                    
-                    // Create custom cluster icon with month color
-                    return L.divIcon({
-                        html: `<div style="
-                            background-color: ${getMonthColor(monthNum)};
-                            width: 16px;
-                            height: 16px;
-                            border-radius: 50%;
-                            border: 1px solid white;
-                            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            color: white;
-                            font-weight: bold;
-                            font-size: 9px;
-                        ">
-                            ${count}
-                        </div>`,
-                        className: `month-cluster month-${monthNum}`,
-                        iconSize: [30, 30]
-                    });
-                }
-            });
-            
-            // Create individual markers for this month
-            monthObservations.forEach(obs => {
-                const lat = obs.geojson.coordinates[1];
-                const lng = obs.geojson.coordinates[0];
-                
-                // Create custom marker
-                const marker = L.circleMarker([lat, lng], {
-                    radius: 5,
-                    fillColor: getMonthColor(monthNum),
-                    color: '#ffffff',
-                    weight: 1,
-                    opacity: 1,
-                    fillOpacity: 1
+            if (clusteringEnabled) {
+                // Create a marker cluster group for this month ONLY
+                const monthCluster = L.markerClusterGroup({
+                    maxClusterRadius: 20, // Smaller cluster radius as requested
+                    spiderfyOnMaxZoom: true,
+                    showCoverageOnHover: false,
+                    zoomToBoundsOnClick: true,
+                    disableClusteringAtZoom: 18, // Stop clustering at high zoom
+                    iconCreateFunction: function(cluster) {
+                        const count = cluster.getChildCount();
+                        const monthName = getMonthName(monthNum);
+                        
+                        // Create custom cluster icon with month color
+                        return L.divIcon({
+                            html: `<div style="
+                                background-color: ${getMonthColor(monthNum)};
+                                width: 16px;
+                                height: 16px;
+                                border-radius: 50%;
+                                border: 1px solid white;
+                                box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: white;
+                                font-weight: bold;
+                                font-size: 9px;
+                            ">
+                                ${count}
+                            </div>`,
+                            className: `month-cluster month-${monthNum}`,
+                            iconSize: [30, 30]
+                        });
+                    }
                 });
                 
-                // Bind popup
-                const popupContent = createMonthlyPopupContent(obs, monthNum);
-                marker.bindPopup(popupContent);
+                // Create individual markers for this month
+                monthObservations.forEach(obs => {
+                    const lat = obs.geojson.coordinates[1];
+                    const lng = obs.geojson.coordinates[0];
+                    
+                    // Create custom marker
+                    const marker = L.circleMarker([lat, lng], {
+                        radius: 5,
+                        fillColor: getMonthColor(monthNum),
+                        color: '#ffffff',
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 1
+                    });
+                    
+                    // Bind popup
+                    const popupContent = createMonthlyPopupContent(obs, monthNum);
+                    marker.bindPopup(popupContent);
+                    
+                    // Add to this month's cluster
+                    monthCluster.addLayer(marker);
+                });
                 
-                // Add to this month's cluster
-                monthCluster.addLayer(marker);
-            });
-            
-            // Store the cluster
-            monthlyClusters[monthNum] = monthCluster;
-            
-            // Add to map
-            monthCluster.addTo(mymap);
-            
-            console.log(`Month ${monthNum}: ${monthObservations.length} observations`);
+                // Store the cluster
+                monthlyClusters[monthNum] = monthCluster;
+                
+                // Add to map
+                monthCluster.addTo(mymap);
+                
+                console.log(`Month ${monthNum}: ${monthObservations.length} observations (clustered)`);
+            } else {
+                // Create individual markers without clustering
+                const monthLayer = L.layerGroup();
+                
+                // Create individual markers for this month
+                monthObservations.forEach(obs => {
+                    const lat = obs.geojson.coordinates[1];
+                    const lng = obs.geojson.coordinates[0];
+                    
+                    // Create custom marker
+                    const marker = L.circleMarker([lat, lng], {
+                        radius: 5,
+                        fillColor: getMonthColor(monthNum),
+                        color: '#ffffff',
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 1
+                    });
+                    
+                    // Bind popup
+                    const popupContent = createMonthlyPopupContent(obs, monthNum);
+                    marker.bindPopup(popupContent);
+                    
+                    // Add to this month's layer
+                    marker.addTo(monthLayer);
+                });
+                
+                // Store the layer
+                monthlyClusters[monthNum] = monthLayer;
+                
+                // Add to map
+                monthLayer.addTo(mymap);
+                
+                console.log(`Month ${monthNum}: ${monthObservations.length} observations (individual)`);
+            }
         });
         
         // Update legend to show completion
         addMonthlyLegend(false);
         
         // Fit map to show all markers if we have any
-        const allClusters = Object.values(monthlyClusters);
-        if (allClusters.length > 0) {
-            const allMarkers = L.featureGroup(allClusters);
-            mymap.fitBounds(allMarkers.getBounds().pad(0.1));
-        }
+		const bounds = L.latLngBounds();
+
+		Object.values(monthlyClusters).forEach(layer => {
+			if (layer.getBounds && layer.getBounds().isValid()) {
+				bounds.extend(layer.getBounds());
+			}
+		});
+
+		if (bounds.isValid()) {
+			mymap.fitBounds(bounds.pad(0.1));
+		}
         
     }, 100);
 }
@@ -2758,7 +3550,7 @@ function completeMonthlyLegend() {
 
 // Function to clear monthly view
 function clearMonthlyView() {
-    // Remove all month clusters
+    // Remove all month clusters/layers
     Object.values(monthlyClusters).forEach(cluster => {
         if (cluster && mymap.hasLayer(cluster)) {
             mymap.removeLayer(cluster);
@@ -2875,6 +3667,17 @@ function applyAllFilters() {
     filters.forEach((value, key) => {
         params.set(key, value);
     });
+
+    // CRITICAL: Get current clustering state from checkbox
+    const toggle = document.getElementById('clustering-toggle');
+    if (toggle) {
+        params.set('clustering', toggle.checked.toString());
+        console.log(`Saving clustering state to URL: ${toggle.checked} (checkbox state)`);
+    } else {
+        // If toggle doesn't exist or isn't visible, check global variable
+        params.set('clustering', clusteringEnabled.toString());
+        console.log(`Saving clustering state to URL: ${clusteringEnabled} (global variable)`);
+    }
     
     // Preserve view if it was previously set
     if (currentView && !filters.has('view')) {
@@ -2939,8 +3742,38 @@ function applyAllFilters() {
         params.set('view', 'monthly');
     }
     
+    // DEBUG: Show final URL
+    console.log('Final URL params:', params.toString());
+    
     // Reload with filters
     window.location.href = window.location.pathname + '?' + params.toString();
+}
+
+// Helper function to create appropriate marker container based on clustering setting
+function createMarkerContainer(options = {}) {
+    if (clusteringEnabled) {
+        const defaultOptions = {
+            maxClusterRadius: 40,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true,
+            disableClusteringAtZoom: 18
+        };
+        return L.markerClusterGroup({...defaultOptions, ...options});
+    } else {
+        return L.layerGroup();
+    }
+}
+
+// Helper function to add marker to container
+function addMarkerToContainer(marker, container) {
+    if (clusteringEnabled && container.addLayer) {
+        // For marker cluster groups
+        container.addLayer(marker);
+    } else {
+        // For layer groups or individual markers
+        marker.addTo(container);
+    }
 }
 
 function resetAllFilters() {
@@ -2977,9 +3810,35 @@ function initializeFilterValues() {
     // First, clear the filters map completely
     filters.clear();
     
+    // Set clustering toggle - Read from URL first
+    console.log('URL clustering param:', params.get('clustering'));
+    const clusteringState = params.get('clustering');
+    
+    if (clusteringState !== null) {
+        // Explicitly set from URL
+        clusteringEnabled = clusteringState === 'true';
+        console.log(`Setting clusteringEnabled from URL: ${clusteringEnabled} (param was: ${clusteringState})`);
+    } else {
+        // Default to false if not in URL
+        clusteringEnabled = false;
+        console.log('Setting clusteringEnabled to default: true (no URL param)');
+    }
+    
+    // Update checkbox to match
+    const toggle = document.getElementById('clustering-toggle');
+    if (toggle) {
+        toggle.checked = clusteringEnabled;
+        console.log(`Checkbox set to: ${toggle.checked} (was: ${toggle.checked})`);
+    } else {
+        console.log('Clustering toggle not found in DOM yet');
+    }
+    
     // Set view radio
     const view = params.get('view') || 'default';
-    document.querySelector(`input[name="view"][value="${view}"]`).checked = true;
+    const viewRadio = document.querySelector(`input[name="view"][value="${view}"]`);
+    if (viewRadio) {
+        viewRadio.checked = true;
+    }
     
     // Only add view to filters if it's not the default
     if (view !== 'default') {
@@ -3005,16 +3864,16 @@ function initializeFilterValues() {
             histogramCheckbox.checked = true;
         }
         
-		if (view === 'elevation') {
-			// Restore slider from URL
-			restoreSliderFromURL();
-			
-			// Show slider
-			const sliderContainer = document.getElementById('accuracy-slider-container');
-			if (sliderContainer) {
-				sliderContainer.style.display = 'block';
-			}
-		}
+        if (view === 'elevation') {
+            // Restore slider from URL
+            restoreSliderFromURL();
+            
+            // Show slider
+            const sliderContainer = document.getElementById('accuracy-slider-container');
+            if (sliderContainer) {
+                sliderContainer.style.display = 'block';
+            }
+        }
         
     } else {
         histogramSearchEnabled = false;
@@ -3024,13 +3883,13 @@ function initializeFilterValues() {
             histogramCheckbox.checked = false;
         }
         
-		if (view !== 'elevation') {
-			// Hide slider
-			const sliderContainer = document.getElementById('accuracy-slider-container');
-			if (sliderContainer) {
-				sliderContainer.style.display = 'none';
-			}
-		}
+        if (view !== 'elevation') {
+            // Hide slider
+            const sliderContainer = document.getElementById('accuracy-slider-container');
+            if (sliderContainer) {
+                sliderContainer.style.display = 'none';
+            }
+        }
     }
    
    // Set checkboxes
@@ -3546,6 +4405,20 @@ function getContrastColor(hexColor) {
 
 // Function to show observations by aspect
 function showObservationsByAspect(aspect) {
+	const elevbtn = document.getElementById('showElevationMarkersBtn');
+	//Clear elevation markers
+	elevbtn.textContent = 'Show All';
+	elevbtn.style.background = '#d8d9da';
+	elevationMarkersVisible = false;
+	elevationBarClicked = false;
+	clearObservationMarkers();
+	clearElevationMarkers();
+
+    aspectRoseClicked = true;
+    aspectMarkersVisible = true;
+    const btn = document.getElementById('showAspectMarkersBtn');
+    btn.textContent = 'Hide All';
+    btn.style.background = '#e74c3c';
     if (!slopeAspectData || slopeAspectData.length === 0) {
         console.log('No slope aspect data available');
         return;
@@ -3572,76 +4445,116 @@ function showObservationsByAspect(aspect) {
         window.mostCommonAspectElement.style.textDecoration = 'none';
     }
     
-    // Create marker cluster for this aspect
-    aspectCluster = L.markerClusterGroup({
-        maxClusterRadius: 40,
-        spiderfyOnMaxZoom: true,
-        showCoverageOnHover: false,
-        zoomToBoundsOnClick: true,
-        iconCreateFunction: function(cluster) {
-            const count = cluster.getChildCount();
-            const color = getAspectColor(aspect);
-            
-            return L.divIcon({
-                html: `<div style="
-                    background-color: ${color};
-                    width: 30px;
-                    height: 30px;
-                    border-radius: 50%;
-                    border: 2px solid white;
-                    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: ${getContrastColor(color)};
-                    font-weight: bold;
-                    font-size: 12px;
-                ">
-                    ${count}
-                </div>`,
-                className: 'aspect-marker-cluster',
-                iconSize: [30, 30]
-            });
-        }
-    });
+    // Clear markers from showAllAspectMarkers function
+    if (aspectMarkersLayer) {
+        mymap.removeLayer(aspectMarkersLayer);
+        aspectMarkersLayer = null;
+    }
     
-    // Create individual markers
-    filteredObservations.forEach(item => {
-        const color = getAspectColor(aspect);
-        const marker = L.circleMarker([item.lat, item.lng], {
-            radius: 6,
-            fillColor: color,
-            color: '#ffffff',
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 1
+    if (clusteringEnabled) {
+        // Create marker cluster for this aspect
+        aspectCluster = L.markerClusterGroup({
+            maxClusterRadius: 40,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true,
+            iconCreateFunction: function(cluster) {
+                const count = cluster.getChildCount();
+                const color = getAspectColor(aspect);
+                
+                return L.divIcon({
+                    html: `<div style="
+                        background-color: ${color};
+                        width: 30px;
+                        height: 30px;
+                        border-radius: 50%;
+                        border: 2px solid white;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: ${getContrastColor(color)};
+                        font-weight: bold;
+                        font-size: 12px;
+                    ">
+                        ${count}
+                    </div>`,
+                    className: 'aspect-marker-cluster',
+                    iconSize: [30, 30]
+                });
+            }
         });
         
-        // Create popup content
-        const popupContent = createAspectPopupContent(item, aspect);
-        marker.bindPopup(popupContent);
+        // Create individual markers
+        filteredObservations.forEach(item => {
+            const color = getAspectColor(aspect);
+            const marker = L.circleMarker([item.lat, item.lng], {
+                radius: 6,
+                fillColor: color,
+                color: '#ffffff',
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 1
+            });
+            
+            // Create popup content
+            const popupContent = createAspectPopupContent(item, aspect);
+            marker.bindPopup(popupContent);
+            
+            // Add to cluster
+            aspectCluster.addLayer(marker);
+        });
         
-        // Add to cluster
-        aspectCluster.addLayer(marker);
-    });
-    
-    // Add cluster to map
-    aspectCluster.addTo(mymap);
-    
-    // Fit map to show all markers
-    if (filteredObservations.length > 0) {
-        const bounds = aspectCluster.getBounds();
-        if (bounds.isValid()) {
-            mymap.fitBounds(bounds.pad(0.1));
-        }
+        // Add cluster to map
+        aspectCluster.addTo(mymap);
+    } else {
+        // Create individual markers without clustering - use a layer group
+        aspectCluster = L.layerGroup();
+        
+        // Create individual markers
+        filteredObservations.forEach(item => {
+            const color = getAspectColor(aspect);
+            const marker = L.circleMarker([item.lat, item.lng], {
+                radius: 6,
+                fillColor: color,
+                color: '#ffffff',
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 1
+            });
+            
+            // Create popup content
+            const popupContent = createAspectPopupContent(item, aspect);
+            marker.bindPopup(popupContent);
+            
+            // Add to layer group
+            marker.addTo(aspectCluster);
+        });
+        
+        // Add layer group to map
+        aspectCluster.addTo(mymap);
     }
+    
+	// Fit map to show all markers
+	if (filteredObservations.length > 0) {
+		const bounds = L.latLngBounds();
+
+		if (aspectCluster.getLayers) {
+			aspectCluster.getLayers().forEach(layer => {
+				if (layer.getLatLng) {
+					bounds.extend(layer.getLatLng());
+				}
+			});
+		}
+
+		if (bounds.isValid()) {
+			mymap.fitBounds(bounds.pad(0.1));
+		}
+	}
     
     // Update compass visualization to show active aspect
     updateCompassSelection(aspect);
     currentSelectedAspect = aspect;
-    
-    // Show the clear markers button
-    showClearMarkersButton();
 }
 
 // Function to get color for aspect
@@ -3717,55 +4630,6 @@ function updateCompassSelection(aspect) {
     }
 }
 
-// Function to show the clear markers button
-function showClearMarkersButton() {
-    const clearBtn = document.getElementById('clearMarkersBtn');
-    if (clearBtn) {
-        clearBtn.style.display = 'inline-block';
-    }
-}
-
-// Function to hide the clear markers button
-function hideClearMarkersButton() {
-    const clearBtn = document.getElementById('clearMarkersBtn');
-    if (clearBtn) {
-        clearBtn.style.display = 'none';
-    }
-}
-
-// Function to clear aspect markers (update this function)
-function clearAspectMarkers() {
-    if (aspectCluster) {
-        mymap.removeLayer(aspectCluster);
-        aspectCluster = null;
-        console.log('Aspect markers cleared from map');
-    }
-    
-    // Reset compass selection
-    if (currentSelectedAspect) {
-        let selectedElement;
-        if (currentSelectedAspect === 'Flat') {
-            selectedElement = document.querySelector('.compass-center');
-        } else {
-            selectedElement = document.querySelector(`.compass-direction[title="${currentSelectedAspect}"]`);
-        }
-        
-        if (selectedElement) {
-            selectedElement.classList.remove('active');
-        }
-        
-        // Restore most common aspect styling
-        if (window.mostCommonAspectElement) {
-            window.mostCommonAspectElement.style.fontWeight = '600';
-        }
-        
-        currentSelectedAspect = null;
-    }
-    
-    // Hide the clear markers button
-    hideClearMarkersButton();
-}
-
 // Function to toggle compass visibility
 function toggleSlopeAspectCompass() {
     const compass = document.getElementById('slopeAspectCompass');
@@ -3775,12 +4639,10 @@ function toggleSlopeAspectCompass() {
         compass.classList.remove('minimized');
         btn.innerHTML = '−';
         btn.title = "Minimize";
-		showClearMarkersButton();
     } else {
         compass.classList.add('minimized');
         btn.innerHTML = '🧭';
         btn.title = "Slope Aspect";
-		hideClearMarkersButton();
     }
 }
 
@@ -4441,12 +5303,15 @@ function initElevationHistogram() {
     histogramDiv.className = 'elevation-histogram loading';
     histogramDiv.id = 'elevationHistogram';
     histogramDiv.innerHTML = `
-        <div class="histogram-header">
-            <h3 class="histogram-title">Loading...</h3>
-            <div class="histogram-controls">
-                <button class="close-btn minimize" onclick="toggleElevationHistogram()" title="Minimize">−</button>
-            </div>
-        </div>
+		<div class="histogram-header">
+			<h3 class="histogram-title">Elevation Distribution (ft)</h3>
+			<div class="histogram-controls">
+				<button class="show-markers-btn" id="showElevationMarkersBtn" onclick="showAllElevationMarkers()" title="Show all markers colored by elevation">
+					Show All
+				</button>
+				<button class="close-btn minimize" onclick="toggleElevationHistogram()" title="Minimize">−</button>
+			</div>
+		</div>
         <div class="histogram-content">
             <div class="loading-indicator" id="loadingIndicator">
                 <div class="loading-spinner"></div>
@@ -5250,11 +6115,11 @@ function createHorizontalHistogram() {
    const maxElevation = Math.max(...elevations);
    const avgElevation = elevations.reduce((a, b) => a + b, 0) / elevations.length;
    
-   // Determine elevation range - default to 6000ft, extend if needed
+   // Determine elevation range
    const DEFAULT_MAX_ELEVATION = 6000;
    const maxElevationForChart = Math.max(DEFAULT_MAX_ELEVATION, Math.ceil(maxElevation / 1000) * 1000);
    
-   // Use 500ft intervals, with at least 12 bins (0-6000ft)
+   // Use 500ft intervals
    const binWidth = 500;
    const numBins = Math.ceil(maxElevationForChart / binWidth);
    
@@ -5266,7 +6131,9 @@ function createHorizontalHistogram() {
       binRanges.push({ 
          start: Math.round(start), 
          end: Math.round(end),
-         label: `${Math.round(start)}-${Math.round(end)} ft`
+         label: `${Math.round(start)}-${Math.round(end)} ft`,
+         // Calculate the color for this elevation range (using the midpoint)
+         color: getElevationColor((start + end) / 2)
       });
    }
    
@@ -5284,11 +6151,11 @@ function createHorizontalHistogram() {
       bins[binIndex]++;
    }
    
-   // Find max count for scaling (ignore empty bins for scaling)
+   // Find max count for scaling
    const nonZeroBins = bins.filter(count => count > 0);
    const maxCount = nonZeroBins.length > 0 ? Math.max(...nonZeroBins) : 0;
    
-   // Create Y-axis with labels every 1000ft
+   // Create Y-axis with labels
    const histogramYAxis = document.getElementById('histogramYAxis');
    histogramYAxis.innerHTML = '<div class="y-axis-line"></div>';
    
@@ -5304,7 +6171,6 @@ function createHorizontalHistogram() {
       labelDiv.className = 'histogram-y-label';
       labelDiv.textContent = elevation === 0 ? '0' : `${elevation / 1000}k`;
       
-      // Calculate position percentage (0% at bottom, 100% at top)
       const positionPercent = (elevation / maxElevationForChart) * 100;
       labelDiv.style.position = 'absolute';
       labelDiv.style.top = `${100 - positionPercent}%`;
@@ -5337,73 +6203,74 @@ function createHorizontalHistogram() {
    const reversedBinRanges = [...binRanges].reverse();
    
    reversedBins.forEach((count, index) => {
-	   const row = document.createElement('div');
-	   row.className = 'histogram-row';
-	   
-	   // Add elevation range label on the left side
-	   const rangeLabel = document.createElement('div');
-	   rangeLabel.className = 'elevation-range-label';
-	   rangeLabel.textContent = `${reversedBinRanges[index].start}–${reversedBinRanges[index].end}`;
-	   rangeLabel.style.cssText = `
-		  position: absolute;
-		  left: 0px;
-		  top: 45%;
-		  transform: translateY(-50%);
-		  font-size: 8px;
-		  font-weight: 600;
-		  color: #FFFFFF;
-		  opacity: 0;
-		  transition: opacity 0.2s ease;
-		  pointer-events: none;
-		  white-space: nowrap;
-		  padding: 2px 4px;
-		  border-radius: 3px;
-		  z-index: 1001;
-	   `;
-	   row.appendChild(rangeLabel);
-	   
-	   // Create the bar
-	   const bar = document.createElement('div');
-	   bar.className = count > 0 ? 'histogram-bar' : 'histogram-bar empty';
-	   
-	   // Calculate width based on count (percentage of max count)
-	   const widthPercent = maxCount > 0 && count > 0 ? (count / maxCount) * 100 : 0;
-	   bar.style.width = `${widthPercent}%`;
-	   
-	   if (count > 0) {
-		  // Add color gradient based on elevation
-		  const elevation = reversedBinRanges[index].start;
-		  const elevationRatio = elevation / maxElevationForChart;
-		  const hue = 210 - (elevationRatio * 60); // Blue to purple gradient
-		  bar.style.background = `linear-gradient(90deg, 
-			 hsl(${hue}, 75%, 60%) 0%, 
-			 hsl(${hue + 10}, 80%, 50%) 100%)`;
-		  
-		  // Add hover effect
-		  bar.onmouseenter = () => {
-			 bar.style.filter = 'brightness(1.15)';
-			 rangeLabel.style.opacity = '1';
-		  };
-		  bar.onmouseleave = () => {
-			 bar.style.filter = 'brightness(1)';
-			 rangeLabel.style.opacity = '0';
-		  };
-		  
-		  // Add count label inside bar
-		  const countLabel = document.createElement('div');
-		  countLabel.className = 'bar-count';
-		  countLabel.textContent = count;
-		  bar.appendChild(countLabel);
-		  
-		  // Click to show observations in this elevation range
-		  bar.onclick = () => {
-			 showObservationsInRange(reversedBinRanges[index].start, reversedBinRanges[index].end);
-		  };
-	   }
-	   
-	   row.appendChild(bar);
-	   histogramChart.appendChild(row);
-	});
+      const row = document.createElement('div');
+      row.className = 'histogram-row';
+      
+      // Add elevation range label on the left side
+      const rangeLabel = document.createElement('div');
+      rangeLabel.className = 'elevation-range-label';
+      rangeLabel.textContent = `${reversedBinRanges[index].start}–${reversedBinRanges[index].end}`;
+      rangeLabel.style.cssText = `
+         position: absolute;
+         left: 0px;
+         top: 45%;
+         transform: translateY(-50%);
+         font-size: 8px;
+         font-weight: 600;
+         color: #FFFFFF;
+         opacity: 0;
+         transition: opacity 0.2s ease;
+         pointer-events: none;
+         white-space: nowrap;
+         padding: 2px 4px;
+         border-radius: 3px;
+         z-index: 1001;
+      `;
+      row.appendChild(rangeLabel);
+      
+      // Create the bar
+      const bar = document.createElement('div');
+      bar.className = count > 0 ? 'histogram-bar' : 'histogram-bar empty';
+      
+      // Calculate width based on count
+      const widthPercent = maxCount > 0 && count > 0 ? (count / maxCount) * 100 : 0;
+      bar.style.width = `${widthPercent}%`;
+      
+		if (count > 0) {
+			// Get the exact color for this elevation range
+			const barColor = reversedBinRanges[index].color;
+			
+			// Use solid color instead of gradient
+			bar.style.background = barColor;
+			bar.style.boxShadow = `0 2px 4px ${barColor}40`; // Add slight shadow with color
+			
+			// Remove gradient from hover if you had it
+			bar.onmouseenter = () => {
+				bar.style.filter = 'brightness(1.1)';
+				rangeLabel.style.opacity = '1';
+				rangeLabel.style.backgroundColor = barColor;
+			};
+			bar.onmouseleave = () => {
+				bar.style.filter = 'brightness(1)';
+				rangeLabel.style.opacity = '0';
+			};
+         
+         // Add count label inside bar
+         const countLabel = document.createElement('div');
+         countLabel.className = 'bar-count';
+         countLabel.textContent = count;
+         countLabel.style.color = getContrastColor(barColor);
+         bar.appendChild(countLabel);
+         
+         // Click to show observations in this elevation range
+         bar.onclick = () => {
+            showObservationsInRange(reversedBinRanges[index].start, reversedBinRanges[index].end);
+         };
+      }
+      
+      row.appendChild(bar);
+      histogramChart.appendChild(row);
+   });
    
    // Create X-axis labels
    const xAxis = document.getElementById('histogramXAxis');
@@ -5471,6 +6338,58 @@ function createHorizontalHistogram() {
    }
 }
 
+// Helper function to get color for histogram (consistent with markers)
+function getElevationColorForHistogram(elevation, maxElevation) {
+    // Normalize elevation to 0-1 range
+    const normalized = Math.max(0, Math.min(1, elevation / maxElevation));
+    
+    // Use the same color logic as getElevationColor but with a fixed max range
+    let hue;
+    
+    if (normalized < 0.25) {
+        // Purple to Blue: 270° to 240°
+        hue = 270 - (normalized / 0.25) * 30;
+    } else if (normalized < 0.5) {
+        // Blue to Green: 240° to 120°
+        hue = 240 - ((normalized - 0.25) / 0.25) * 120;
+    } else if (normalized < 0.75) {
+        // Green to Yellow: 120° to 60°
+        hue = 120 - ((normalized - 0.5) / 0.25) * 60;
+    } else {
+        // Yellow to Red: 60° to 0°
+        hue = 60 - ((normalized - 0.75) / 0.25) * 60;
+    }
+    
+    // Use consistent saturation and lightness
+    return `hsl(${hue}, 75%, 55%)`;
+}
+
+// Helper function to adjust color lightness
+function adjustColorLightness(color, amount) {
+    // Parse HSL color
+    const match = color.match(/hsl\((\d+),\s*([\d.]+)%,\s*([\d.]+)%\)/);
+    if (!match) return color;
+    
+    const h = parseInt(match[1]);
+    const s = parseFloat(match[2]);
+    let l = parseFloat(match[3]) + amount;
+    
+    // Clamp lightness between 0-100
+    l = Math.max(0, Math.min(100, l));
+    
+    return `hsl(${h}, ${s}%, ${l}%)`;
+}
+
+// Helper function to get contrasting text color
+function getContrastColor(color) {
+    // Parse HSL to get lightness
+    const match = color.match(/hsl\(\d+,\s*\d+%,\s*(\d+)%\)/);
+    if (!match) return '#000000';
+    
+    const lightness = parseFloat(match[1]);
+    return lightness > 50 ? '#000000' : '#FFFFFF';
+}
+
 // Variables for observation list
 let observationListPanel = null;
 let currentObservations = [];
@@ -5480,6 +6399,19 @@ let itemsPerPage = 15;
 let currentPage = 1;
 
 function showObservationsInRange(minElev, maxElev) {
+    const aspbtn = document.getElementById('showAspectMarkersBtn');
+	// Clear aspect markers
+	clearAspectMarkers();
+	aspectMarkersVisible = false;
+	aspectRoseClicked = false;
+	aspbtn.textContent = 'Show All';
+	aspbtn.style.background = '#d8d9da';
+
+    const btn = document.getElementById('showElevationMarkersBtn');
+    btn.textContent = 'Hide All';
+    btn.style.background = '#e74c3c';
+    elevationMarkersVisible = true;
+    elevationBarClicked = true;
     const observationsInRange = elevationData.filter(d => 
         d.elevation >= minElev && d.elevation < maxElev
     );
@@ -5487,11 +6419,12 @@ function showObservationsInRange(minElev, maxElev) {
     currentObservations = observationsInRange;
     currentRange = { minElev, maxElev };
     currentPage = 1;
-    itemsPerPage = 15; // Items per page for the list
+    itemsPerPage = 15;
     
     // First, clear any existing markers from previous range selections
     clearObservationMarkers();
-    
+    clearElevationMarkers();
+
     // Create observation list panel if it doesn't exist
     createObservationListPanel();
     
@@ -5501,7 +6434,7 @@ function showObservationsInRange(minElev, maxElev) {
     // Load first page of observations into the list
     loadObservationListPage();
     
-    // Create markers for ALL observations in range (not just first page)
+    // Create markers with respect to clustering setting
     createMarkersForAllObservations();
     
     // Show the panel
@@ -5518,7 +6451,6 @@ function createObservationListPanel() {
 		<div class="observation-list-header">
 			<h3 id="observationListTitle">Observations</h3>
 			<div class="observation-list-controls">
-				<button onclick="clearObservationMarkers()" title="Clear Markers">🗑️</button>
 				<button onclick="toggleObservationList()" title="Minimize">−</button>
 			</div>
 		</div>
@@ -5618,15 +6550,33 @@ function loadObservationListPage() {
 }
 
 function getElevationColor(elevation) {
-    if (!currentRange) return '#3498db';
+    // Use the same max elevation as histogram for consistent color mapping
+    const DEFAULT_MAX_ELEVATION = 6000;
+    const maxElevation = Math.max(DEFAULT_MAX_ELEVATION, 
+        currentRange ? currentRange.maxElev : DEFAULT_MAX_ELEVATION);
     
-    // Calculate position in current range
-    const rangeSize = currentRange.maxElev - currentRange.minElev;
-    const positionInRange = (elevation - currentRange.minElev) / rangeSize;
+    // Normalize elevation to 0-1 range based on histogram max
+    const normalized = Math.max(0, Math.min(1, elevation / maxElevation));
     
-    // Use same color gradient as histogram (blue to purple)
-    const hue = 210 - (positionInRange * 120);
-    return `hsl(${hue}, 75%, 60%)`;
+    // Same color gradient as histogram bars: purple → blue → green → yellow → red
+    let hue;
+    
+    if (normalized < 0.25) {
+        // Purple to Blue: 270° to 240°
+        hue = 270 - (normalized / 0.25) * 30;
+    } else if (normalized < 0.5) {
+        // Blue to Green: 240° to 120°
+        hue = 240 - ((normalized - 0.25) / 0.25) * 120;
+    } else if (normalized < 0.75) {
+        // Green to Yellow: 120° to 60°
+        hue = 120 - ((normalized - 0.5) / 0.25) * 60;
+    } else {
+        // Yellow to Red: 60° to 0°
+        hue = 60 - ((normalized - 0.75) / 0.25) * 60;
+    }
+    
+    // Use the exact same HSL values as histogram bars
+    return `hsl(${hue}, 75%, 55%)`;
 }
 
 function createMarkersForAllObservations() {
@@ -5635,10 +6585,165 @@ function createMarkersForAllObservations() {
         return;
     }
     
-    console.log(`Creating markers for ${currentObservations.length} observations`);
+    console.log(`GLOBAL clusteringEnabled: ${clusteringEnabled}`);
+    console.log(`Creating markers for ${currentObservations.length} observations with clustering: ${clusteringEnabled ? 'ON' : 'OFF'}`);
+    
+    // Clear any existing markers first
+    if (observationMarkers) {
+        mymap.removeLayer(observationMarkers);
+    }
+    
+    if (clusteringEnabled) {
+        console.log('Calling createClusteredObservationMarkers()');
+        createClusteredObservationMarkers();
+    } else {
+        console.log('Calling createIndividualObservationMarkers()');
+        createIndividualObservationMarkers();
+    }
+}
+
+function createClusteredObservationMarkers() {
+    if (!currentObservations || currentObservations.length === 0) {
+        console.log('No observations to create clustered markers for');
+        return;
+    }
+    
+    console.log(`Creating clustered markers for ${currentObservations.length} observations`);
+    
+    // Create a cluster group for observations in this elevation range
+    observationMarkers = L.markerClusterGroup({
+        maxClusterRadius: 40,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        disableClusteringAtZoom: 18,
+        iconCreateFunction: function(cluster) {
+            const count = cluster.getChildCount();
+            
+            // Calculate average elevation for cluster
+            let totalElevation = 0;
+            cluster.getAllChildMarkers().forEach(marker => {
+                if (marker.observationData && marker.observationData.elevation) {
+                    totalElevation += marker.observationData.elevation;
+                }
+            });
+            const avgElevation = totalElevation / count;
+            const elevationColor = getElevationColor(avgElevation);
+            
+            return L.divIcon({
+                html: `<div style="
+                    background-color: ${elevationColor};
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 50%;
+                    border: 2px solid white;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: ${getContrastColor(elevationColor)};
+                    font-weight: bold;
+                    font-size: 12px;
+                    cursor: pointer;
+                ">
+                    ${count}
+                </div>`,
+                className: 'observation-marker-cluster',
+                iconSize: [30, 30]
+            });
+        }
+    });
+    
+    // Reset the markers list
+    observationMarkersList = [];
+    
+    // Create individual markers and add to cluster
+    currentObservations.forEach((obsData, index) => {
+        const elevationColor = getElevationColor(obsData.elevation);
+        
+        // Create marker with elevation-based color
+        const marker = L.circleMarker([obsData.lat, obsData.lng], {
+            radius: 6,
+            fillColor: getElevationColor(obsData.elevation),
+            color: '#ffffff',
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 1
+        });
+        
+        // Store observation data and index with the marker
+        marker.observationIndex = index;
+        marker.observationData = obsData;
+        
+        const obs = obsData.observation;
+        const taxonName = obs.taxon?.preferred_common_name || obs.taxon?.name || 'Unknown';
+        const observer = obs.user?.login || 'Unknown';
+        const photoUrl = obs.photos?.[0]?.square_url || obs.photos?.[0]?.url || '';
+        
+        const markerPopupContent = `
+            <div style="max-width: 250px;">
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                    ${photoUrl ? '<img src="' + photoUrl + '" style="width: 60px; height: 60px; object-fit: cover; margin-right: 10px; border-radius: 3px;">' : 
+                      '<div style="width: 60px; height: 60px; margin-right: 10px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 3px; color: #999; font-size: 12px;">No photo</div>'}
+                    <div style="flex: 1;">
+                        <strong style="font-size: 14px; display: block; margin-bottom: 3px;">${taxonName}</strong>
+                        <div style="font-size: 11px; color: ${elevationColor}; font-weight: bold; margin-bottom: 3px;">
+                            ${Math.round(obsData.elevation)} ft
+                        </div>
+                        <div style="font-size: 11px; color: #666; margin-bottom: 5px;">By: ${observer}</div>
+                    </div>
+                </div>
+                <div style="font-size: 11px; margin-bottom: 8px;">
+                    <strong>Location:</strong> ${obsData.lat.toFixed(6)}, ${obsData.lng.toFixed(6)}<br>
+                    <strong>Observed:</strong> ${obs.observed_on || 'Unknown date'}
+                </div>
+                <a href="https://www.inaturalist.org/observations/${obs.id}" target="_blank" 
+                   style="display: block; text-align: center; background: #4caf50; color: white; padding: 6px; border-radius: 4px; text-decoration: none; font-size: 12px;">
+                    View observation on iNaturalist
+                </a>
+            </div>
+        `;
+        
+        marker.bindPopup(markerPopupContent);
+        observationMarkers.addLayer(marker);
+        
+        // Add click handler to highlight in list
+        marker.on('click', () => {
+            highlightObservationFromList(index);
+        });
+        
+        // Store marker reference
+        observationMarkersList[index] = marker;
+    });
+    
+    // Add the cluster group to the map
+    observationMarkers.addTo(mymap);
+    
+    // Fit map to show all clusters
+    if (observationMarkersList.length > 0) {
+        // Get bounds from the cluster group
+        const bounds = observationMarkers.getBounds();
+        if (bounds.isValid()) {
+            mymap.fitBounds(bounds.pad(0.1)); // Add 10% padding
+        }
+    }
+    
+    console.log(`Created clustered markers for ${observationMarkersList.filter(m => m).length} observations`);
+}
+
+function createIndividualObservationMarkers() {
+    if (!currentObservations || currentObservations.length === 0) {
+        console.log('No observations to create individual markers for');
+        return;
+    }
+    
+    console.log(`Creating individual markers for ${currentObservations.length} observations`);
     
     // Create a layer group for all markers
     observationMarkers = L.layerGroup();
+    
+    // Reset the markers list
+    observationMarkersList = [];
     
     // Create a marker for EACH observation
     currentObservations.forEach((obsData, index) => {
@@ -5647,15 +6752,16 @@ function createMarkersForAllObservations() {
         // Create marker with elevation-based color
         const marker = L.circleMarker([obsData.lat, obsData.lng], {
             radius: 6,
-            fillColor: elevationColor,
+            fillColor: getElevationColor(obsData.elevation),
             color: '#ffffff',
             weight: 1,
             opacity: 1,
             fillOpacity: 1
         });
         
-        // Store the index with the marker
+        // Store observation data and index with the marker
         marker.observationIndex = index;
+        marker.observationData = obsData;
         
         const obs = obsData.observation;
         const taxonName = obs.taxon?.preferred_common_name || obs.taxon?.name || 'Unknown';
@@ -5701,99 +6807,15 @@ function createMarkersForAllObservations() {
     // Add the marker layer to the map
     observationMarkers.addTo(mymap);
     
-    // Fit map to show ALL markers (not just first page)
+    // Fit map to show ALL markers
     if (observationMarkersList.length > 0) {
         const group = new L.featureGroup(observationMarkersList.filter(m => m));
         mymap.fitBounds(group.getBounds().pad(0.1)); // Add 10% padding
     }
     
-    console.log(`Created ${observationMarkersList.filter(m => m).length} markers on map`);
+    console.log(`Created ${observationMarkersList.filter(m => m).length} individual markers on map`);
 }
 
-// Function to create markers for specific page only (for list synchronization)
-function createMarkersForCurrentPageOnly() {
-    // Calculate start and end indices for current page
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, currentObservations.length);
-    const pageObservations = currentObservations.slice(startIndex, endIndex);
-    
-    // Clear any existing markers from previous page
-    if (observationMarkers) {
-        mymap.removeLayer(observationMarkers);
-        observationMarkersList = [];
-    }
-    
-    // Create a layer group for page markers
-    observationMarkers = L.layerGroup();
-    
-    pageObservations.forEach((obsData, localIndex) => {
-        const globalIndex = startIndex + localIndex;
-        const elevationColor = getElevationColor(obsData.elevation);
-        
-        // Create marker with elevation-based color
-        const marker = L.circleMarker([obsData.lat, obsData.lng], {
-            radius: 6,
-            fillColor: elevationColor,
-            color: '#ffffff',
-            weight: 2,
-            opacity: 0.8,
-            fillOpacity: 0.7
-        });
-        
-        // Store the global index with the marker
-        marker.observationIndex = globalIndex;
-        
-        const obs = obsData.observation;
-        const taxonName = obs.taxon?.preferred_common_name || obs.taxon?.name || 'Unknown';
-        const observer = obs.user?.login || 'Unknown';
-        const photoUrl = obs.photos?.[0]?.square_url || obs.photos?.[0]?.url || '';
-        
-        const markerPopupContent = `
-            <div style="max-width: 250px;">
-                <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                    ${photoUrl ? '<img src="' + photoUrl + '" style="width: 60px; height: 60px; object-fit: cover; margin-right: 10px; border-radius: 3px;">' : 
-                      '<div style="width: 60px; height: 60px; margin-right: 10px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 3px; color: #999; font-size: 12px;">No photo</div>'}
-                    <div style="flex: 1;">
-                        <strong style="font-size: 14px; display: block; margin-bottom: 3px;">${taxonName}</strong>
-                        <div style="font-size: 11px; color: ${elevationColor}; font-weight: bold; margin-bottom: 3px;">
-                            ${Math.round(obsData.elevation)} ft
-                        </div>
-                        <div style="font-size: 11px; color: #666; margin-bottom: 5px;">By: ${observer}</div>
-                    </div>
-                </div>
-                <div style="font-size: 11px; margin-bottom: 8px;">
-                    <strong>Location:</strong> ${obsData.lat.toFixed(6)}, ${obsData.lng.toFixed(6)}<br>
-                    <strong>Observed:</strong> ${obs.observed_on || 'Unknown date'}
-                </div>
-                <a href="https://www.inaturalist.org/observations/${obs.id}" target="_blank" 
-                   style="display: block; text-align: center; background: #4caf50; color: white; padding: 6px; border-radius: 4px; text-decoration: none; font-size: 12px;">
-                    View observation on iNaturalist
-                </a>
-            </div>
-        `;
-        
-        marker.bindPopup(markerPopupContent);
-        marker.addTo(observationMarkers);
-        
-        // Add click handler to highlight in list
-        marker.on('click', () => {
-            highlightObservationFromList(globalIndex);
-        });
-        
-        // Store marker reference
-        observationMarkersList[globalIndex] = marker;
-    });
-    
-    // Add the marker layer to the map
-    observationMarkers.addTo(mymap);
-    
-    // Fit map to show markers from this page only
-    const validMarkers = observationMarkersList.filter(m => m);
-    if (validMarkers.length > 0) {
-        const group = new L.featureGroup(validMarkers);
-        mymap.fitBounds(group.getBounds().pad(0.1)); // Add 10% padding
-    }
-}
 
 function highlightObservationFromList(index) {
     selectedObservationIndex = index;
@@ -6115,10 +7137,17 @@ window.toggleView = function(view) {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     const params = new URLSearchParams(window.location.search);
+    console.log('Page loaded. URL params:', Object.fromEntries(params));
+    
     const taxonName = params.get('taxon_name');
     const placeName = params.get('place_name');
     const placeId = params.get('place_id');
     const view = params.get('view') || 'default';
+
+    // CRITICAL: Initialize filter values including clustering state
+    initializeFilterValues();
+    
+    console.log(`After initializeFilterValues: clusteringEnabled = ${clusteringEnabled}`);
 
     // Initialize monthly view only if it's active in URL
     if (view === 'monthly') {
@@ -6175,12 +7204,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // Restore slider immediately
             restoreSliderFromURL();
 
-			// Start histogram if not already running
-			if (!histogramStarted) {
-				setTimeout(() => {
-					initElevationHistogram();
-				}, 500);
-			}
+            // Start histogram if not already running
+            if (!histogramStarted) {
+                setTimeout(() => {
+                    initElevationHistogram();
+                }, 500);
+            }
         }
     }
 
@@ -6194,6 +7223,27 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Hide filters initially
     hideFilters();
+
+    // Hide clustering toggle initially
+    const clusteringToggle = document.querySelector('.clustering-toggle');
+    if (clusteringToggle) {
+        clusteringToggle.style.display = 'none';
+    }
+    
+    // Check current view and show/hide accordingly
+    const currentView = new URLSearchParams(window.location.search).get('view') || 'default';
+    if (clusteringToggle) {
+        if (currentView === 'elevation' || currentView === 'monthly') {
+            clusteringToggle.style.display = 'block';
+        } else {
+            clusteringToggle.style.display = 'none';
+        }
+    }
+	setTimeout(fixClusteringSync, 500);
+    
+    // DEBUG: Log final clustering state
+    console.log(`Final clusteringEnabled after init: ${clusteringEnabled}`);
+    console.log(`Checkbox checked state: ${document.getElementById('clustering-toggle')?.checked}`);
 });
 
 // Simple verification function
