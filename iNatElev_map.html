@@ -7078,9 +7078,6 @@ window.toggleView = function(view) {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if we should initialize monthly view
-    initMonthlyView();
-    
     // Also check if elevation histogram should be initialized
     const currentView = new URLSearchParams(window.location.search).get('view');
     if (currentView === 'elevation') {
