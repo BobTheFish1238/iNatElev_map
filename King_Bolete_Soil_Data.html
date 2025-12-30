@@ -1,0 +1,2513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>King Bolete Environmental Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #8B4513;
+        }
+        
+        h1 {
+            color: #8B4513;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.2rem;
+            font-style: italic;
+        }
+        
+        .description {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid #8B4513;
+        }
+        
+        .main-container {
+            display: block;
+            grid-template-columns: 300px 1fr;
+            gap: 25px;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .content-container {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 1200px) {
+            .content-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .graph-container {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+        }
+        
+        .graph-container:hover {
+            transform: translateY(-5px);
+        }
+
+        .graph-container:has(#data-table) {
+            max-height: none;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #data-table-container {
+            overflow-y: auto;
+            flex-grow: 1;
+            max-height: 430px;
+        }
+        
+        .graph-title {
+            color: #8B4513;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            text-align: center;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+        
+        .input-section {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .input-title {
+            color: #8B4513;
+            margin-bottom: 20px;
+            font-size: 1.6rem;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .input-field {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: #8B4513;
+        }
+        
+        button {
+            background-color: #8B4513;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #6B3410;
+        }
+        
+        .map-container {
+            height: 300px;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 15px;
+            border: 1px solid #ddd;
+        }
+        
+        .info-panel {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            display: none;
+        }
+        
+        .info-panel.active {
+            display: block;
+        }
+        
+        .info-title {
+            color: #8B4513;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        .info-content {
+            line-height: 1.8;
+        }
+        
+        .info-item {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #555;
+            display: inline-block;
+            width: 200px;
+        }
+        
+        .link {
+            color: #1a73e8;
+            text-decoration: none;
+            word-break: break-all;
+        }
+        
+        .link:hover {
+            text-decoration: underline;
+        }
+        
+        .user-point {
+            background-color: #FF6B6B !important;
+            border-color: #FF3838 !important;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 15px;
+            color: #8B4513;
+            font-weight: 600;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        /* NDJSON Directory Styles */
+        .ndjson-directory {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            height: fit-content;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .directory-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #8B4513;
+        }
+        
+        .directory-title {
+            color: #8B4513;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+        
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: #8B4513;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .directory-content {
+            max-height: 1000px;
+            overflow-y: auto;
+            transition: max-height 0.3s ease;
+        }
+        
+        .directory-content.collapsed {
+            max-height: 0;
+            overflow: hidden;
+        }
+        
+        .folder {
+            margin-bottom: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+        
+        .folder-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background-color: #f8f8f8;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .folder-name {
+            font-weight: 600;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .folder-content {
+            padding: 10px;
+            background-color: #fff;
+            transition: max-height 0.3s ease;
+            max-height: 1000px;
+            overflow: hidden;
+        }
+        
+        .folder-content.collapsed {
+            max-height: 0;
+            padding: 0 10px;
+        }
+        
+        .ndjson-file {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: background-color 0.2s;
+        }
+        
+        .ndjson-file:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .file-toggle {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .file-toggle.active {
+            background-color: #8B4513;
+            color: white;
+            border-color: #6B3410;
+        }
+        
+        .file-name {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .file-count {
+            font-size: 12px;
+            color: #888;
+            background-color: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        .color-picker {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 0;
+        }
+        
+		.settings-section {
+			background-color: #fff;
+			border-radius: 10px;
+			padding: 20px;
+			margin-bottom: 25px;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+		}
+        
+        .settings-title {
+            color: #8B4513;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .setting-group {
+            margin-bottom: 20px;
+        }
+        
+        .setting-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .setting-label {
+            min-width: 150px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        /* New styles for map controls */
+        .map-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .view-options {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .view-options button {
+            padding: 5px 10px;
+            font-size: 12px;
+            background: #f0f0f0;
+            color: black;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .view-options button.active {
+            background: #8B4513;
+            color: white;
+            border-color: #6B3410;
+        }
+        
+        .slider-container {
+            display: none;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        .slider-container label {
+          display: block;
+          text-align: center;
+          font-weight: 600;
+          margin-bottom: 6px;
+        }
+        
+        .slider-container.active {
+            display: block;
+        }
+        
+        .slider-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        /* Custom styles for smaller noUiSlider handles */
+        .noUi-handle {
+            width: 12px !important;
+            height: 12px !important;
+            right: -6px !important;
+            top: -4px !important;
+            border: 1px solid #333;
+            box-sizing: border-box;
+        }
+
+        .noUi-horizontal .noUi-handle {
+            width: 16px !important;
+            height: 16px !important;
+            right: -8px !important;
+            top: -5px !important;
+        }
+
+        .noUi-handle:before, .noUi-handle:after {
+            display: none !important;
+        }
+
+        .noUi-connect {
+            background-color: #8B4513 !important;
+        }
+
+        .noUi-target {
+            background-color: #f0f0f0 !important;
+            border: 1px solid #ddd !important;
+            box-shadow: none !important;
+        }
+
+        .noUi-tooltip {
+            font-size: 10px !important;
+            padding: 2px 5px !important;
+            background: #8B4513 !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 3px !important;
+        }
+
+        /* Adjust the slider height */
+        .noUi-horizontal {
+            height: 8px !important;
+        }
+
+        /* Make sure the handle is properly positioned */
+        .noUi-horizontal .noUi-handle-lower {
+            right: -7px !important;
+        }
+
+        .noUi-horizontal .noUi-handle-upper {
+            right: -7px !important;
+        }
+        
+        .fullscreen-btn {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: white;
+            color: black;
+            padding: 5px 10px;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .fullscreen-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        /* Fullscreen styles */
+        .map-container.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+        }
+        
+        .map-container.fullscreen .map-controls {
+            top: 20px;
+            right: 20px;
+        }
+        
+        .map-container.fullscreen .fullscreen-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+        }
+
+        /* Legend container styles */
+        .legend-container {
+            position: absolute;
+            bottom: 50px;
+            left: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: none;
+            max-width: 200px;
+            font-size: 12px;
+        }
+
+        .legend-container.active {
+            display: block;
+        }
+
+        .legend-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .legend-gradient {
+            height: 20px;
+            width: 100%;
+            border-radius: 3px;
+            margin-bottom: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .legend-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #555;
+        }
+
+        /* Month legend grid styles */
+        .month-legend-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            margin-top: 5px;
+        }
+
+        .month-legend-item {
+            display: flex;
+            align-items: center;
+            padding: 2px;
+            font-size: 10px;
+        }
+
+        .month-color-box {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            margin-right: 4px;
+            border: 1px solid rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
+        .month-label {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 9px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>King Bolete Environmental Analysis</h1>
+        <p class="subtitle">Visualizing the relationship between elevation, soil temperature, soil moisture, and seasonal patterns</p>
+    </header>
+    
+    <div class="description">
+        <p>This interactive dashboard explores environmental factors associated with King Bolete (Boletus edulis) observations in Washington State. The scatter plots below show relationships between elevation, soil temperature, soil moisture, and time of year. Click on any point to view detailed information about that observation.</p>
+    </div>
+    
+    <div class="main-container">    
+        <!-- Main content area -->
+		<div>
+			<!-- NDJSON Data Files container -->
+			<div class="ndjson-directory" style="margin-bottom: 25px;">
+				<div class="directory-header">
+					<div class="directory-title">NDJSON Data Files</div>
+					<button class="toggle-btn" id="toggle-directory">
+						<i class="fas fa-chevron-up"></i>
+					</button>
+				</div>
+				<div class="directory-content" id="directory-content">
+					<!-- Directory content will be populated by JavaScript -->
+					<div class="loading" id="directory-loading">Loading NDJSON directory...</div>
+					<div id="ndjson-folder-structure"></div>
+				</div>
+			</div>
+			
+			<!-- Data Settings container - SEPARATE from NDJSON directory -->
+			<div class="settings-section" style="margin-bottom: 25px;">
+				<h3 class="settings-title">Data Settings</h3>
+				
+				<div class="setting-group">
+					<div class="setting-row">
+						<div class="setting-label">Average Days:</div>
+						<select id="average-days">
+							<option value="1">1 day</option>
+							<option value="3">3 days</option>
+							<option value="7" selected>7 days</option>
+							<option value="10">10 days</option>
+							<option value="14">14 days</option>
+						</select>
+					</div>
+					
+					<div class="setting-row">
+						<div class="setting-label">Soil Temp Depth:</div>
+						<select id="temp-depth">
+							<option value="0_to_7cm">0-7 cm</option>
+							<option value="7_to_28cm" selected>7-28 cm</option>
+							<option value="28_to_100cm">28-100 cm</option>
+							<option value="0_to_100cm">0-100 cm</option>
+						</select>
+					</div>
+					
+					<div class="setting-row">
+						<div class="setting-label">Soil Moisture Depth:</div>
+						<select id="moisture-depth">
+							<option value="0_to_7cm">0-7 cm</option>
+							<option value="7_to_28cm" selected>7-28 cm</option>
+							<option value="28_to_100cm">28-100 cm</option>
+							<option value="0_to_100cm">0-100 cm</option>
+						</select>
+					</div>
+				</div>
+				
+				<button id="apply-settings" style="width: 100%;">Apply Settings</button>
+			</div>
+			
+			<div class="input-section">
+                <h2 class="input-title">Add New Location Data</h2>
+                <p>Enter coordinates manually or click on the map to select a location. The system will retrieve the average soil temperature and elevation data from the Open-Meteo Historical Weather API.</p>
+                
+                <div class="input-group">
+                    <div class="input-field" style="flex: 1 1 200px;">
+                        <label for="latitude">Latitude</label>
+                        <input type="number" id="latitude" step="any" placeholder="e.g., 46.744487" value="46.744487" style="width: 100%;">
+                    </div>
+                    
+                    <div class="input-field" style="flex: 1 1 200px;">
+                        <label for="longitude">Longitude</label>
+                        <input type="number" id="longitude" step="any" placeholder="e.g., -121.812952" value="-121.812952" style="width: 100%;">
+                    </div>
+                    
+                    <div class="input-field" style="flex: 1 1 200px;">
+                        <label for="date">Observation Date</label>
+                        <input type="date" id="date" style="width: 100%;">
+                    </div>
+                    
+                    <div class="input-field" style="flex: 1 1 200px;">
+                        <label>&nbsp;</label>
+                        <button id="fetch-data" style="width: 100%;">Get Soil Temperature & Elevation</button>
+                    </div>
+                </div>
+                
+                <div class="map-container" id="map"></div>
+                
+                <div class="loading" id="loading">Fetching data from Open-Meteo API...</div>
+            </div>
+            
+            <div class="content-container">
+                <div class="graph-container">
+                    <h3 class="graph-title">Elevation vs Soil Temperature</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="elevationTempChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="graph-container">
+                    <h3 class="graph-title">Elevation vs Soil Moisture</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="elevationMoistureChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="graph-container">
+                    <h3 class="graph-title">Elevation vs Date</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="elevationDateChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="graph-container">
+                    <h3 class="graph-title">Soil Temperature vs Date</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="tempDateChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="graph-container">
+                    <h3 class="graph-title">Soil Moisture vs Date</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="moistureDateChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="graph-container">
+                    <h3 class="graph-title">Soil Temperature vs Soil Moisture</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="tempMoistureChart"></canvas>
+                    </div>
+                </div>
+                
+				<div class="graph-container" style="grid-column: 1 / -1; width: 100%; margin-top: 25px;">
+					<h3 class="graph-title">Data Table</h3>
+					<div id="data-table-container" style="overflow-x: auto;">
+						<table id="data-table" style="width: 100%; border-collapse: collapse;">
+							<thead>
+								<tr style="background-color: #8B4513; color: white; position: sticky; top: 0;">
+									<th style="padding: 10px; text-align: center;">Dataset</th>
+									<th style="padding: 10px; text-align: center;">Date</th>
+									<th style="padding: 10px; text-align: center;">Elevation (ft)</th>
+									<th style="padding: 10px; text-align: center;">Soil Temp (°F)</th>
+									<th style="padding: 10px; text-align: center;">Soil Moisture</th>
+								</tr>
+							</thead>
+							<tbody id="table-body">
+								<!-- Data will be populated here -->
+							</tbody>
+						</table>
+					</div>
+				</div>
+            </div>
+            
+            <div class="info-panel" id="info-panel">
+                <h3 class="info-title">Observation Details</h3>
+                <div class="info-content" id="info-content">
+                    <!-- Details will be populated here when a point is clicked -->
+                </div>
+                <div class="soil-temp-chart-container" style="margin-top: 20px; display: none;" id="soil-temp-chart-container">
+                    <h4 style="color: #8B4513; margin-bottom: 15px;">Soil Temperature Trend</h4>
+                    <div class="chart-wrapper" style="height: 200px;">
+                        <canvas id="soil-temp-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Data Sources: iNaturalist observations & Open-Meteo Historical Weather API</p>
+        <p>Note: The Open-Meteo API provides soil temperature data with a spatial resolution of 9 km for recent years (IFS model) or 0.25° (~25 km) for historical data (ERA5 model).</p>
+    </footer>
+
+    <script>
+        // Global variables
+        let originalData = []; // Store all loaded NDJSON data
+        let activeDatasets = {}; // Track active NDJSON files with their colors
+        let userData = []; // User-added data points
+        let allData = []; // Combined data from all sources
+        let chartData = []; // Processed data for charts
+        
+        // Chart instances
+        let elevationTempChart, elevationMoistureChart, elevationDateChart, tempDateChart, moistureDateChart, tempMoistureChart;
+        
+        // Initialize map
+        let map, marker, mapPoints = [];
+        let currentView = 'default';
+        let elevationRange = [0, 8000];
+        let tempRange = [0, 100];
+        let moistureRange = [0, 1];
+        let monthRange = [1, 12];
+        
+        // Settings
+        let averageDays = 7;
+        let tempDepth = '7_to_28cm';
+        let moistureDepth = '7_to_28cm';
+        
+        // Color scales
+        const elevationColorScale = d3.scaleLinear()
+            .domain([0, 1333, 2666, 4000, 5333, 6666, 8000])
+            .range([
+                '#6A0DAD', // Purple at 0 ft
+                '#0000FF', // Blue at 1333 ft
+                '#00FF00', // Green at 2666 ft
+                '#FFFF00', // Yellow at 4000 ft
+                '#FFA500', // Orange at 5333 ft
+                '#FF4500', // Red-Orange at 6666 ft
+                '#FF0000'  // Red at 8000 ft
+            ]);
+
+        const tempColorScale = d3.scaleLinear()
+            .domain([45, 65])
+            .range(['#0000FF', '#FF0000'])
+            .interpolate(d3.interpolateHcl);
+
+        const moistureColorScale = d3.scaleLinear()
+            .domain([0.2, 0.4])
+            .range(['#FFD700', '#00008B']); // Gold to Dark Blue
+
+        // Month colors
+        const monthColors = [
+            '#FF6B6B', // Jan - Deep Red
+            '#FF8E53', // Feb - Orange-Red
+            '#FFB347', // Mar - Orange
+            '#FFD166', // Apr - Yellow-Orange
+            '#A8E6CF', // May - Light Green
+            '#7BC8A4', // Jun - Green
+            '#4ECDC4', // Jul - Teal
+            '#45B7D1', // Aug - Light Blue
+            '#6C5CE7', // Sep - Purple
+            '#A29BFE', // Oct - Lavender
+            '#DDA0DD', // Nov - Plum
+            '#FFB6C1'  // Dec - Pink
+        ];
+        
+        // NDJSON directory structure
+        const ndjsonStructure = {
+            "boletus_edulis": [
+                "Washington_Boletus_edulis.ndjson",
+                "Oregon_Boletus_edulis.ndjson"
+            ],
+            "boletus_rex-veris": [
+                "Washington_Boletus_rex-veris.ndjson"
+            ]
+        };
+        
+        // Default colors for NDJSON files
+        const defaultColors = [
+            '#8B4513', '#1E90FF', '#32CD32', '#FF4500', '#9370DB',
+            '#FFD700', '#00CED1', '#FF69B4', '#9ACD32', '#FF6347'
+        ];
+        
+        // Initialize NDJSON directory
+        function initNdjsonDirectory() {
+            const directoryContent = document.getElementById('ndjson-folder-structure');
+            directoryContent.innerHTML = '';
+            
+            let colorIndex = 0;
+            
+            Object.keys(ndjsonStructure).forEach(folderName => {
+                const folderDiv = document.createElement('div');
+                folderDiv.className = 'folder';
+                
+                const folderHeader = document.createElement('div');
+                folderHeader.className = 'folder-header';
+                folderHeader.innerHTML = `
+                    <div class="folder-name">
+                        <i class="fas fa-folder"></i>
+                        ${folderName}
+                    </div>
+                    <button class="toggle-btn folder-toggle">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                `;
+                
+                const folderContent = document.createElement('div');
+                folderContent.className = 'folder-content';
+                
+                ndjsonStructure[folderName].forEach(fileName => {
+                    const filePath = `ndjson/${folderName}/${fileName}`;
+                    const fileId = filePath.replace(/\//g, '_').replace(/\./g, '_');
+                    
+                    // Generate a color for this file
+                    const fileColor = defaultColors[colorIndex % defaultColors.length];
+                    colorIndex++;
+                    
+                    // Store initial state
+                    activeDatasets[fileId] = {
+                        active: false,
+                        color: fileColor,
+                        filePath: filePath,
+                        fileName: fileName,
+                        folderName: folderName,
+                        data: []
+                    };
+                    
+                    const fileDiv = document.createElement('div');
+                    fileDiv.className = 'ndjson-file';
+                    fileDiv.dataset.fileId = fileId;
+                    
+                    fileDiv.innerHTML = `
+                        <div class="file-toggle" data-file-id="${fileId}">
+                            <i class="fas fa-check" style="font-size: 10px; display: none;"></i>
+                        </div>
+                        <div class="file-name" title="${fileName}">${fileName}</div>
+                        <div class="file-count">0</div>
+						<div style="display: flex; align-items: center; gap: 5px;">
+							<input type="color" class="color-picker" value="${fileColor.substring(0, 7)}" data-file-id="${fileId}" style="width: 24px; height: 24px;">
+							<input type="range" class="alpha-slider" min="0" max="100" value="100" data-file-id="${fileId}" style="width: 60px;">
+							<span class="alpha-percent" data-file-id="${fileId}" style="font-size: 11px; min-width: 25px;">100%</span>
+						</div>
+                    `;
+                    
+                    folderContent.appendChild(fileDiv);
+                });
+                
+                folderDiv.appendChild(folderHeader);
+                folderDiv.appendChild(folderContent);
+                directoryContent.appendChild(folderDiv);
+                
+                // Add toggle event for folder
+                folderHeader.querySelector('.folder-toggle').addEventListener('click', function() {
+                    const icon = this.querySelector('i');
+                    folderContent.classList.toggle('collapsed');
+                    icon.classList.toggle('fa-chevron-up');
+                    icon.classList.toggle('fa-chevron-down');
+                });
+            });
+            
+            // Add event listeners for file toggles and color pickers
+			document.querySelectorAll('.file-toggle').forEach(toggle => {
+				toggle.addEventListener('click', function() {
+					const fileId = this.dataset.fileId;
+					const fileData = activeDatasets[fileId];
+					
+					fileData.active = !fileData.active;
+					this.classList.toggle('active');
+					this.querySelector('i').style.display = fileData.active ? 'block' : 'none';
+					
+					if (fileData.active && fileData.data.length === 0) {
+						// Load the NDJSON file - needs full reprocessing
+						loadNdjsonFile(fileId, fileData.filePath);
+					} else {
+						// Just toggle visibility - visual update only
+						updateDataDisplay(true); // true = visual update only
+					}
+				});
+			});
+            
+			document.querySelectorAll('.color-picker, .alpha-slider').forEach(input => {
+				input.addEventListener('input', function() {
+					const fileId = this.dataset.fileId;
+					const colorPicker = document.querySelector(`.color-picker[data-file-id="${fileId}"]`);
+					const alphaSlider = document.querySelector(`.alpha-slider[data-file-id="${fileId}"]`);
+					const alphaPercent = document.querySelector(`.alpha-percent[data-file-id="${fileId}"]`);
+					
+					const rgb = colorPicker.value;
+					const alpha = parseInt(alphaSlider.value);
+					const alphaHex = alpha === 100 ? '' : Math.round(alpha * 2.55).toString(16).padStart(2, '0');
+					
+					// Update only the color in activeDatasets
+					activeDatasets[fileId].color = rgb + alphaHex;
+					
+					if (alphaPercent) {
+						alphaPercent.textContent = alpha + '%';
+					}
+					
+					// Only update visual elements, not reprocess data
+					updateDataDisplay(true); // true = visual update only
+				});
+			});
+            
+            // Hide loading message
+            document.getElementById('directory-loading').style.display = 'none';
+        }
+        
+        // Load NDJSON file
+        async function loadNdjsonFile(fileId, filePath) {
+            try {
+                const response = await fetch(filePath);
+                if (!response.ok) {
+                    throw new Error(`Failed to load ${filePath}: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                const lines = text.trim().split('\n');
+                const data = lines.map(line => JSON.parse(line));
+                
+                // Store the data
+                activeDatasets[fileId].data = data;
+                
+                // Update count display
+                const fileElement = document.querySelector(`.ndjson-file[data-file-id="${fileId}"]`);
+                if (fileElement) {
+                    fileElement.querySelector('.file-count').textContent = data.length;
+                }
+                
+                // Update the display
+                updateDataDisplay();
+                
+            } catch (error) {
+                console.error(`Error loading NDJSON file ${filePath}:`, error);
+                alert(`Error loading ${filePath}: ${error.message}`);
+                
+                // Deactivate the file
+                activeDatasets[fileId].active = false;
+                const toggle = document.querySelector(`.file-toggle[data-file-id="${fileId}"]`);
+                if (toggle) {
+                    toggle.classList.remove('active');
+                    toggle.querySelector('i').style.display = 'none';
+                }
+            }
+        }
+        
+        // Process NDJSON data based on current settings
+        function processNdjsonData() {
+            chartData = [];
+            originalData = [];
+            
+            // Process each active NDJSON file
+            Object.keys(activeDatasets).forEach(fileId => {
+                const fileData = activeDatasets[fileId];
+                
+                if (fileData.active && fileData.data.length > 0) {
+                    fileData.data.forEach(record => {
+                        // Calculate averages based on settings
+                        const daysToAverage = Math.min(averageDays, record.dates.length);
+                        const startIdx = record.dates.length - daysToAverage;
+                        
+                        // Get soil temperature data for selected depth
+                        const tempData = record.soil_temperature[tempDepth];
+                        const avgTemp = tempData && tempData.length > 0 ?
+                            tempData.slice(startIdx).reduce((sum, val) => sum + val, 0) / daysToAverage :
+                            null;
+                        
+                        // Get soil moisture data for selected depth
+                        const moistureData = record.soil_moisture[moistureDepth];
+                        const avgMoisture = moistureData && moistureData.length > 0 ?
+                            moistureData.slice(startIdx).reduce((sum, val) => sum + val, 0) / daysToAverage :
+                            null;
+                        
+                        // Parse date
+                        const date = new Date(record.date_used);
+                        const month = date.getMonth() + 1;
+                        const monthDay = date.getDate();
+                        const monthFraction = month + (monthDay / 31);
+                        
+                        // Create data point
+                        const dataPoint = {
+                            datasetId: fileId,
+                            datasetName: fileData.fileName,
+                            datasetColor: fileData.color,
+                            observationUrl: record.observation_url,
+                            date: record.date_used,
+                            coordinates: record.coordinates,
+                            elevationFt: record.elevation_ft,
+                            soilTemp: avgTemp,
+                            soilMoisture: avgMoisture,
+                            month: month,
+                            monthName: date.toLocaleString('default', { month: 'short' }),
+                            monthDay: monthDay,
+                            monthFraction: monthFraction,
+                            yearMonth: date.getFullYear() + '-' + String(month).padStart(2, '0'),
+                            latitude: parseFloat(record.coordinates.split(',')[0]),
+                            longitude: parseFloat(record.coordinates.split(',')[1]),
+                            rawData: record
+                        };
+                        
+                        chartData.push(dataPoint);
+                        originalData.push(dataPoint);
+                    });
+                }
+            });
+            
+            // Combine with user data
+            allData = [...originalData, ...userData];
+        }
+        
+        // Update all charts and map with current data
+		function updateDataDisplay(updateVisualsOnlyFlag = false) {
+			if (!updateVisualsOnlyFlag) {
+				// Only process data if needed (when loading new files or changing settings)
+				processNdjsonData();
+				populateDataTable(); // Only needed when data changes
+				updateCharts(); // Full chart update with new data
+			} else {
+				// Just update colors/visuals
+				updateChartColors();
+			}
+			
+			updateMapPointColors();
+		}
+        
+        // Initialize map
+        function initMap() {
+            map = L.map('map').setView([46.744487, -121.812952], 7);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Add click event to map (but not on controls)
+            map.on('click', function(e) {
+                const clickedElement = e.originalEvent.target;
+                
+                const isControl = clickedElement.closest('.map-controls') || 
+                                 clickedElement.closest('.noUi-handle') ||
+                                 clickedElement.closest('.fullscreen-btn');
+                
+                if (!isControl) {
+                    document.getElementById('latitude').value = e.latlng.lat.toFixed(6);
+                    document.getElementById('longitude').value = e.latlng.lng.toFixed(6);
+                    
+                    if (marker) {
+                        map.removeLayer(marker);
+                    }
+                    marker = L.marker(e.latlng).addTo(map);
+                }
+            });
+            
+            // Create map controls
+            const mapControls = L.control({position: 'topright'});
+            mapControls.onAdd = function() {
+                const div = L.DomUtil.create('div', 'map-controls');
+                
+                L.DomEvent.disableClickPropagation(div);
+                
+                // View options - updated to include soil moisture
+                div.innerHTML = `
+                    <div class="view-options">
+                        <button class="active" data-view="default">Default</button>
+                        <button data-view="elevation">Elevation</button>
+                        <button data-view="temp">Soil Temp</button>
+                        <button data-view="moisture">Soil Moisture</button>
+                        <button data-view="month">Month</button>
+                    </div>
+                    <div id="elevation-slider" class="slider-container">
+                        <label>Elevation Range (ft)</label>
+                        <div id="elevation-slider-range" class="range-slider"></div>
+                        <div class="range-values">
+                            <span id="elevation-min">0</span>
+                            <span>-</span>
+                            <span id="elevation-max">8000</span>
+                        </div>
+                    </div>
+                    <div id="temp-slider" class="slider-container">
+                        <label>Soil Temp Range (°F)</label>
+                        <div id="temp-slider-range" class="range-slider"></div>
+                        <div class="range-values">
+                            <span id="temp-min">30</span>
+                            <span>-</span>
+                            <span id="temp-max">70</span>
+                        </div>
+                    </div>
+                    <div id="moisture-slider" class="slider-container">
+                        <label>Soil Moisture Range</label>
+                        <div id="moisture-slider-range" class="range-slider"></div>
+                        <div class="range-values">
+                            <span id="moisture-min">0</span>
+                            <span>-</span>
+                            <span id="moisture-max">0.5</span>
+                        </div>
+                    </div>
+                    <div id="month-slider" class="slider-container">
+                        <label>Month Range</label>
+                        <div id="month-slider-range" class="range-slider"></div>
+                        <div class="range-values">
+                            <span id="month-min">Jan</span>
+                            <span>-</span>
+                            <span id="month-max">Dec</span>
+                        </div>
+                    </div>
+                `;
+
+                // Legend container
+                const legendDiv = L.DomUtil.create('div', 'legend-container', map.getContainer());
+                legendDiv.innerHTML = `
+                    <div class="legend-title">Color Legend</div>
+                    <div id="gradient-legend" class="legend-gradient"></div>
+                    <div class="legend-labels">
+                        <span id="legend-min">Min</span>
+                        <span id="legend-max">Max</span>
+                    </div>
+                    <div id="month-legend" class="month-legend-grid" style="display: none;">
+                        <!-- Month legend items will be populated here in 3x4 grid -->
+                    </div>
+                `;
+                L.DomEvent.disableClickPropagation(legendDiv);
+                
+                // Fullscreen button
+                const fullscreenBtn = L.DomUtil.create('button', 'fullscreen-btn', map.getContainer());
+                fullscreenBtn.textContent = 'Fullscreen';
+                L.DomEvent.on(fullscreenBtn, 'click', toggleFullscreen);
+                L.DomEvent.disableClickPropagation(fullscreenBtn);
+                
+                // View option click handlers
+                div.querySelectorAll('.view-options button').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        div.querySelectorAll('.view-options button').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        currentView = this.dataset.view;
+                        
+                        updateMapPoints();
+                        
+                        if (typeof updateMonthLegend === 'function') {
+                            updateMonthLegend();
+                        }
+                    });
+                });
+                
+                return div;
+            };
+            
+            mapControls.addTo(map);
+            
+            // Initialize sliders
+			setTimeout(() => {
+				window.elevationSlider = createRangeSlider('elevation-slider-range', 0, 8000, [0, 8000], 100);
+				window.tempSlider = createRangeSlider('temp-slider-range', 30, 70, [30, 70], 1);
+				window.moistureSlider = createRangeSlider('moisture-slider-range', 0, 0.5, [0, 0.5], 0.01);
+				window.monthSlider = createRangeSlider('month-slider-range', 1, 12, [1, 12], 1);
+				
+				window.elevationSlider.on('update', function(values) {
+					elevationRange = values.map(v => parseFloat(v));
+					document.getElementById('elevation-min').textContent = Math.round(values[0]);
+					document.getElementById('elevation-max').textContent = Math.round(values[1]);
+					updateMapPoints();
+				});
+				
+				window.tempSlider.on('update', function(values) {
+					tempRange = values.map(v => parseFloat(v));
+					document.getElementById('temp-min').textContent = Math.round(values[0]);
+					document.getElementById('temp-max').textContent = Math.round(values[1]);
+					updateMapPoints();
+				});
+				
+				window.moistureSlider.on('update', function(values) {
+					moistureRange = values.map(v => parseFloat(v));
+					document.getElementById('moisture-min').textContent = parseFloat(values[0]).toFixed(2);
+					document.getElementById('moisture-max').textContent = parseFloat(values[1]).toFixed(2);
+					updateMapPoints();
+				});
+				
+				window.monthSlider.on('update', function(values) {
+					monthRange = values.map(v => Math.round(parseFloat(v)));
+					updateMonthLabels();
+					updateMapPoints();
+				});
+				
+				updateMonthLabels();
+				updateMapPoints();
+				
+			}, 100);
+        }
+        
+        // Create range slider with two handles
+		function createRangeSlider(id, min, max, values, step) {
+			const slider = noUiSlider.create(document.getElementById(id), {
+				start: values,
+				connect: true,
+				step: step,
+				range: {
+					'min': min,
+					'max': max
+				},
+				behaviour: 'drag',
+				tooltips: true,
+				format: {
+					to: function(value) {
+						// Ensure value is a number before calling toFixed
+						const numValue = typeof value === 'string' ? parseFloat(value) : value;
+						return step < 1 ? numValue.toFixed(2) : Math.round(numValue);
+					},
+					from: function(value) {
+						return Number(value);
+					}
+				}
+			});
+			return slider;
+		}
+        
+        function updateMonthLabels() {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            const minMonthElem = document.getElementById('month-min');
+            const maxMonthElem = document.getElementById('month-max');
+            
+            if (minMonthElem && maxMonthElem) {
+                minMonthElem.textContent = months[monthRange[0] - 1] || 'Jan';
+                maxMonthElem.textContent = months[monthRange[1] - 1] || 'Dec';
+            }
+        }
+        
+        function updateMapPoints() {
+            const legendContainer = document.querySelector('.legend-container');
+            const gradientLegend = document.getElementById('gradient-legend');
+            const monthLegend = document.getElementById('month-legend');
+            const legendMin = document.getElementById('legend-min');
+            const legendMax = document.getElementById('legend-max');
+            
+            if (legendContainer) {
+                legendContainer.classList.toggle('active', 
+                    currentView === 'elevation' || currentView === 'temp' || currentView === 'moisture' || currentView === 'month');
+            }
+            
+            // Update legend content based on current view
+            if (gradientLegend && legendMin && legendMax) {
+                const legendLabels = document.querySelector('.legend-labels');
+                
+                switch(currentView) {
+                    case 'elevation':
+                        gradientLegend.style.display = 'block';
+                        monthLegend.style.display = 'none';
+                        if (legendLabels) legendLabels.style.display = 'flex';
+                        gradientLegend.style.background = 'linear-gradient(to right, #6A0DAD, #0000FF, #00FF00, #FFFF00, #FFA500, #FF0000)';
+                        legendMin.textContent = '0 ft';
+                        legendMax.textContent = '8000 ft';
+                        if (legendContainer) {
+                            legendContainer.style.maxWidth = '200px';
+                        }
+                        break;
+                        
+                    case 'temp':
+                        gradientLegend.style.display = 'block';
+                        monthLegend.style.display = 'none';
+                        if (legendLabels) legendLabels.style.display = 'flex';
+                        gradientLegend.style.background = 'linear-gradient(to right, #0000FF, #FF0000)';
+                        legendMin.textContent = '30°F';
+                        legendMax.textContent = '70°F';
+                        if (legendContainer) {
+                            legendContainer.style.maxWidth = '200px';
+                        }
+                        break;
+                        
+                    case 'moisture':
+                        gradientLegend.style.display = 'block';
+                        monthLegend.style.display = 'none';
+                        if (legendLabels) legendLabels.style.display = 'flex';
+                        gradientLegend.style.background = 'linear-gradient(to right, #FFD700, #00008B)';
+                        legendMin.textContent = '0.0';
+                        legendMax.textContent = '0.5';
+                        if (legendContainer) {
+                            legendContainer.style.maxWidth = '200px';
+                        }
+                        break;
+                        
+                    case 'month':
+                        gradientLegend.style.display = 'none';
+                        monthLegend.style.display = 'grid';
+                        if (legendLabels) legendLabels.style.display = 'none';
+                        if (legendContainer) {
+                            legendContainer.style.maxWidth = '180px';
+                        }
+                        break;
+                        
+                    default:
+                        if (gradientLegend) gradientLegend.style.display = 'block';
+                        if (monthLegend) monthLegend.style.display = 'none';
+                        if (legendLabels) legendLabels.style.display = 'flex';
+                        if (legendMin) legendMin.textContent = 'Min';
+                        if (legendMax) legendMax.textContent = 'Max';
+                }
+            }
+            
+            // Clear existing points
+            mapPoints.forEach(point => map.removeLayer(point));
+            mapPoints = [];
+            
+            if (!currentView) {
+                currentView = 'default';
+            }
+            
+            // Show/hide sliders based on current view
+            const elevationSlider = document.getElementById('elevation-slider');
+            const tempSlider = document.getElementById('temp-slider');
+            const moistureSlider = document.getElementById('moisture-slider');
+            const monthSlider = document.getElementById('month-slider');
+            
+            if (elevationSlider) elevationSlider.classList.toggle('active', currentView === 'elevation');
+            if (tempSlider) tempSlider.classList.toggle('active', currentView === 'temp');
+            if (moistureSlider) moistureSlider.classList.toggle('active', currentView === 'moisture');
+            if (monthSlider) monthSlider.classList.toggle('active', currentView === 'month');
+            
+            // Get current slider values when switching views
+            if (currentView === 'elevation' && window.elevationSlider) {
+                const values = window.elevationSlider.get();
+                elevationRange = values.map(v => parseFloat(v));
+            } else if (currentView === 'temp' && window.tempSlider) {
+                const values = window.tempSlider.get();
+                tempRange = values.map(v => parseFloat(v));
+            } else if (currentView === 'moisture' && window.moistureSlider) {
+                const values = window.moistureSlider.get();
+                moistureRange = values.map(v => parseFloat(v));
+            } else if (currentView === 'month' && window.monthSlider) {
+                const values = window.monthSlider.get();
+                monthRange = values.map(v => Math.round(parseFloat(v)));
+                updateMonthLabels();
+            }
+            
+            // If not in a filtered view, use default ranges
+            if (currentView !== 'elevation') elevationRange = [0, 8000];
+            if (currentView !== 'temp') tempRange = [30, 70];
+            if (currentView !== 'moisture') moistureRange = [0, 0.5];
+            if (currentView !== 'month') monthRange = [1, 12];
+            
+            // Plot points from all active datasets
+            chartData.forEach(point => {
+                // Filter based on ranges
+                const inElevationRange = point.elevationFt >= elevationRange[0] && 
+                                      point.elevationFt <= elevationRange[1];
+                const inTempRange = point.soilTemp !== null && 
+                                 point.soilTemp >= tempRange[0] && 
+                                 point.soilTemp <= tempRange[1];
+                const inMoistureRange = point.soilMoisture !== null && 
+                                     point.soilMoisture >= moistureRange[0] && 
+                                     point.soilMoisture <= moistureRange[1];
+                const inMonthRange = point.month >= monthRange[0] && 
+                                  point.month <= monthRange[1];
+                
+                if (!inElevationRange || !inTempRange || !inMoistureRange || !inMonthRange) return;
+                
+                // Set color based on current view
+                let color, fillColor;
+                
+                switch(currentView) {
+                    case 'elevation':
+                        color = elevationColorScale(point.elevationFt);
+                        fillColor = color;
+                        break;
+                    case 'temp':
+                        color = tempColorScale(point.soilTemp);
+                        fillColor = color;
+                        break;
+                    case 'moisture':
+                        color = moistureColorScale(point.soilMoisture);
+                        fillColor = color;
+                        break;
+                    case 'month':
+                        color = monthColors[point.month - 1];
+                        fillColor = color;
+                        break;
+                    default:
+                        // Use dataset color in default view
+                        color = point.datasetColor;
+                        fillColor = color;
+                }
+                
+                const marker = L.circleMarker([point.latitude, point.longitude], {
+                    radius: 5,
+                    color: color,
+                    fillColor: fillColor,
+                    fillOpacity: 0.8,
+                    weight: 1
+                }).addTo(map);
+                
+                marker.on('click', () => showPointInfo(point));
+                mapPoints.push(marker);
+            });
+			// Plot user-added points on top
+			if (userData.length > 0) {
+				userData.forEach(point => {
+					// Filter based on ranges
+					const inElevationRange = point.elevationFt >= elevationRange[0] && 
+										  point.elevationFt <= elevationRange[1];
+					const inTempRange = point.soilTemp !== null && 
+									 point.soilTemp >= tempRange[0] && 
+									 point.soilTemp <= tempRange[1];
+					const inMoistureRange = point.soilMoisture !== null && 
+										 point.soilMoisture >= moistureRange[0] && 
+										 point.soilMoisture <= moistureRange[1];
+					const inMonthRange = point.month >= monthRange[0] && 
+									  point.month <= monthRange[1];
+					
+					if (!inElevationRange || !inTempRange || !inMoistureRange || !inMonthRange) return;
+					
+					// User points always use their own color (red)
+					const color = '#FF6B6B';
+					const fillColor = '#FF3838';
+					
+					const marker = L.circleMarker([point.latitude, point.longitude], {
+						radius: 8, // Larger than regular points
+						color: color,
+						fillColor: fillColor,
+						fillOpacity: 0.9,
+						weight: 2,
+						className: 'user-point-marker' // Add a class for potential styling
+					}).addTo(map);
+					
+					marker.on('click', () => showPointInfo(point));
+					mapPoints.push(marker);
+				});
+			}
+        }
+        
+        function updateMonthLegend() {
+            const monthLegend = document.getElementById('month-legend');
+            if (!monthLegend) return;
+            
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            let legendHTML = '';
+            monthColors.forEach((color, index) => {
+                legendHTML += `
+                    <div class="month-legend-item">
+                        <div class="month-color-box" style="background-color: ${color};"></div>
+                        <div class="month-label">${months[index]}</div>
+                    </div>
+                `;
+            });
+            
+            monthLegend.innerHTML = legendHTML;
+        }
+        
+        function toggleFullscreen() {
+            const mapContainer = document.querySelector('.map-container');
+            
+            if (!document.fullscreenElement) {
+                mapContainer.classList.add('fullscreen');
+                if (mapContainer.requestFullscreen) {
+                    mapContainer.requestFullscreen();
+                }
+                map.invalidateSize();
+            } else {
+                exitFullscreen();
+            }
+        }
+
+        function exitFullscreen() {
+            const mapContainer = document.querySelector('.map-container');
+            
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+            mapContainer.classList.remove('fullscreen');
+            map.invalidateSize();
+        }
+
+        document.addEventListener('fullscreenchange', function() {
+            const mapContainer = document.querySelector('.map-container');
+            
+            if (!document.fullscreenElement && mapContainer.classList.contains('fullscreen')) {
+                mapContainer.classList.remove('fullscreen');
+                map.invalidateSize();
+            }
+        });
+
+        document.addEventListener('webkitfullscreenchange', function() {
+            const mapContainer = document.querySelector('.map-container');
+            
+            if (!document.webkitFullscreenElement && mapContainer.classList.contains('fullscreen')) {
+                mapContainer.classList.remove('fullscreen');
+                map.invalidateSize();
+            }
+        });
+
+        document.addEventListener('mozfullscreenchange', function() {
+            const mapContainer = document.querySelector('.map-container');
+            
+            if (!document.mozFullScreenElement && mapContainer.classList.contains('fullscreen')) {
+                mapContainer.classList.remove('fullscreen');
+                map.invalidateSize();
+            }
+        });
+
+        document.addEventListener('MSFullscreenChange', function() {
+            const mapContainer = document.querySelector('.map-container');
+            
+            if (!document.msFullscreenElement && mapContainer.classList.contains('fullscreen')) {
+                mapContainer.classList.remove('fullscreen');
+                map.invalidateSize();
+            }
+        });
+        
+        // Initialize charts
+        function initCharts() {
+            const ctx1 = document.getElementById('elevationTempChart').getContext('2d');
+            const ctx2 = document.getElementById('elevationMoistureChart').getContext('2d');
+            const ctx3 = document.getElementById('elevationDateChart').getContext('2d');
+            const ctx4 = document.getElementById('tempDateChart').getContext('2d');
+            const ctx5 = document.getElementById('moistureDateChart').getContext('2d');
+            const ctx6 = document.getElementById('tempMoistureChart').getContext('2d');
+            
+            // Common chart configuration
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                onClick: (evt, elements) => {
+                    if (elements.length > 0) {
+                        const index = elements[0].index;
+                        const datasetIndex = elements[0].datasetIndex;
+                        
+                        // Find which dataset was clicked
+                        let dataPoint = null;
+                        if (datasetIndex < chartData.length) {
+                            dataPoint = chartData[index];
+                        } else if (datasetIndex === chartData.length && userData.length > 0) {
+                            dataPoint = userData[0];
+                        }
+                        
+                        if (dataPoint) {
+                            showPointInfo(dataPoint);
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        align: 'center',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 15,
+                            font: {
+                                size: 12,
+                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                            },
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            color: '#333'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const dataPoint = context.dataset.data[context.dataIndex];
+                                return [
+                                    `Dataset: ${dataPoint.datasetName || 'User Data'}`,
+                                    `Date: ${dataPoint.date || 'N/A'}`,
+                                    `Elevation: ${dataPoint.elevationFt} ft`,
+                                    `Soil Temp: ${dataPoint.soilTemp ? dataPoint.soilTemp.toFixed(1) : 'N/A'} °F`,
+                                    `Soil Moisture: ${dataPoint.soilMoisture ? dataPoint.soilMoisture.toFixed(3) : 'N/A'}`
+                                ];
+                            }
+                        }
+                    }
+                }
+            };
+            
+            // Chart 1: Elevation vs Soil Temperature
+            elevationTempChart = new Chart(ctx1, {
+                type: 'scatter',
+                data: {
+                    datasets: []
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Soil Temp °F',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Elevation ft',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            min: 0,
+                            max: 8000,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Chart 2: Elevation vs Soil Moisture
+            elevationMoistureChart = new Chart(ctx2, {
+                type: 'scatter',
+                data: {
+                    datasets: []
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Soil Moisture',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Elevation ft',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            min: 0,
+                            max: 8000,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Chart 3: Elevation vs Date
+            elevationDateChart = new Chart(ctx3, {
+                type: 'scatter',
+                data: {
+                    datasets: []
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Month',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            min: 1,
+                            max: 13,
+                            ticks: {
+                                callback: function(value) {
+                                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                    const monthIndex = Math.floor(value) - 1;
+                                    if (monthIndex >= 0 && monthIndex < 12) {
+                                        return months[monthIndex];
+                                    }
+                                    return '';
+                                },
+                                stepSize: 1
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Elevation ft',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            min: 0,
+                            max: 8000,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Chart 4: Soil Temperature vs Date
+            tempDateChart = new Chart(ctx4, {
+                type: 'scatter',
+                data: {
+                    datasets: []
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Month',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            min: 1,
+                            max: 13,
+                            ticks: {
+                                callback: function(value) {
+                                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                    const monthIndex = Math.floor(value) - 1;
+                                    if (monthIndex >= 0 && monthIndex < 12) {
+                                        return months[monthIndex];
+                                    }
+                                    return '';
+                                },
+                                stepSize: 1
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Soil Temp °F',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Chart 5: Soil Moisture vs Date
+            moistureDateChart = new Chart(ctx5, {
+                type: 'scatter',
+                data: {
+                    datasets: []
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Month',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            min: 1,
+                            max: 13,
+                            ticks: {
+                                callback: function(value) {
+                                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                    const monthIndex = Math.floor(value) - 1;
+                                    if (monthIndex >= 0 && monthIndex < 12) {
+                                        return months[monthIndex];
+                                    }
+                                    return '';
+                                },
+                                stepSize: 1
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Soil Moisture',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Chart 6: Soil Temperature vs Soil Moisture
+            tempMoistureChart = new Chart(ctx6, {
+                type: 'scatter',
+                data: {
+                    datasets: []
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Soil Temp °F',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Soil Moisture',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Populate data table
+            populateDataTable();
+        }
+        
+		function updateVisualsOnly() {
+			// Update chart colors without reprocessing data
+			updateChartColors();
+			
+			// Update map point colors without rebuilding
+			updateMapPointColors();
+		}
+
+		function updateChartColors() {
+			if (!elevationTempChart || !elevationTempChart.data.datasets) return;
+			
+			const charts = [elevationTempChart, elevationMoistureChart, elevationDateChart, 
+						   tempDateChart, moistureDateChart, tempMoistureChart];
+			
+			charts.forEach(chart => {
+				if (chart && chart.data && chart.data.datasets) {
+					chart.data.datasets.forEach(dataset => {
+						// Skip if no data or no datasetId
+						if (!dataset.data || dataset.data.length === 0) return;
+						
+						// Get the datasetId from the first data point
+						const firstPoint = dataset.data[0];
+						if (!firstPoint) return;
+						
+						if (firstPoint.datasetId === 'user_data') {
+							// User data - keep red color
+							dataset.backgroundColor = '#FF6B6B';
+							dataset.borderColor = '#FF3838';
+						} else if (firstPoint.datasetId && activeDatasets[firstPoint.datasetId]) {
+							// NDJSON dataset - use current color from activeDatasets
+							dataset.backgroundColor = activeDatasets[firstPoint.datasetId].color;
+							dataset.borderColor = activeDatasets[firstPoint.datasetId].color;
+						}
+					});
+					
+					chart.update('none'); // 'none' prevents animation for faster update
+				}
+			});
+		}
+
+		function updateMapPointColors() {
+			// Remove and recreate map points with new colors
+			mapPoints.forEach(point => map.removeLayer(point));
+			mapPoints = [];
+			
+			// Re-add all points with current colors
+			allData.forEach(point => {
+				let color, fillColor;
+				const datasetData = activeDatasets[point.datasetId];
+				
+				if (datasetData) {
+					// Use dataset color
+					color = datasetData.color;
+					fillColor = datasetData.color;
+				} else if (point.datasetId === 'user_data') {
+					// User data keeps its color
+					color = '#FF6B6B';
+					fillColor = '#FF3838';
+				} else {
+					color = point.datasetColor || '#8B4513';
+					fillColor = point.datasetColor || '#8B4513';
+				}
+				
+				const marker = L.circleMarker([point.latitude, point.longitude], {
+					radius: point.datasetId === 'user_data' ? 8 : 5,
+					color: color,
+					fillColor: fillColor,
+					fillOpacity: 0.8,
+					weight: point.datasetId === 'user_data' ? 2 : 1
+				}).addTo(map);
+				
+				marker.on('click', () => showPointInfo(point));
+				mapPoints.push(marker);
+			});
+		}
+
+        // Update charts with current data
+		function updateCharts() {
+			// Group data by dataset
+			const datasetsMap = {};
+			
+			chartData.forEach(point => {
+				if (!datasetsMap[point.datasetId]) {
+					datasetsMap[point.datasetId] = {
+						label: point.datasetName,
+						data: [],
+						backgroundColor: point.datasetColor,
+						borderColor: point.datasetColor,
+						borderWidth: 1,
+						pointRadius: 3,
+						pointHoverRadius: 4,
+						datasetId: point.datasetId // Add datasetId for reference
+					};
+				}
+				
+				datasetsMap[point.datasetId].data.push(point);
+			});
+			
+			// Convert to array
+			const datasets = Object.values(datasetsMap);
+			
+			// Add user data if exists
+			if (userData.length > 0) {
+				datasets.push({
+					label: 'Your Added Point',
+					data: userData,
+					backgroundColor: '#FF6B6B',
+					borderColor: '#FF3838',
+					borderWidth: 3,
+					pointRadius: 8,
+					pointHoverRadius: 10,
+					z: 9999,
+					datasetId: 'user_data'
+				});
+			}
+			
+			// Update each chart
+			const chartConfigs = [
+				{ chart: elevationTempChart, xProp: 'soilTemp', yProp: 'elevationFt' },
+				{ chart: elevationMoistureChart, xProp: 'soilMoisture', yProp: 'elevationFt' },
+				{ chart: elevationDateChart, xProp: 'monthFraction', yProp: 'elevationFt' },
+				{ chart: tempDateChart, xProp: 'monthFraction', yProp: 'soilTemp' },
+				{ chart: moistureDateChart, xProp: 'monthFraction', yProp: 'soilMoisture' },
+				{ chart: tempMoistureChart, xProp: 'soilTemp', yProp: 'soilMoisture' }
+			];
+			
+			chartConfigs.forEach(config => {
+				config.chart.data.datasets = datasets.map(dataset => {
+					// Filter out null values for this specific chart
+					const filteredData = dataset.data
+						.filter(point => point[config.xProp] !== null && point[config.yProp] !== null)
+						.map(point => ({
+							x: point[config.xProp],
+							y: point[config.yProp],
+							...point // Include all point properties
+						}));
+					
+					return {
+						...dataset,
+						data: filteredData
+					};
+				});
+				config.chart.update('none'); // Use 'none' for faster updates
+			});
+		}
+        
+        // Populate data table
+        function populateDataTable() {
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = '';
+            
+            allData.forEach(point => {
+                const row = document.createElement('tr');
+                row.style.borderBottom = '1px solid #eee';
+                row.style.cursor = 'pointer';
+                
+                row.onclick = function() {
+                    showPointInfo(point);
+                };
+                
+                // Highlight user-added data
+                if (userData.includes(point)) {
+                    row.style.backgroundColor = '#FFF5F5';
+                }
+                
+                row.innerHTML = `
+                    <td style="padding: 10px; text-align: center;">${point.datasetName || 'User Data'}</td>
+                    <td style="padding: 10px; text-align: center;">${point.date}</td>
+                    <td style="padding: 10px; text-align: center;">${point.elevationFt}</td>
+                    <td style="padding: 10px; text-align: center;">${point.soilTemp ? point.soilTemp.toFixed(1) : 'N/A'}</td>
+                    <td style="padding: 10px; text-align: center;">${point.soilMoisture ? point.soilMoisture.toFixed(3) : 'N/A'}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Show point information in the info panel
+        async function showPointInfo(point) {
+            const infoPanel = document.getElementById('info-panel');
+            const infoContent = document.getElementById('info-content');
+            const soilTempChartContainer = document.getElementById('soil-temp-chart-container');
+            
+            soilTempChartContainer.style.display = 'none';
+            
+            const observationLink = point.observationUrl || '#';
+            const apiUrl = point.rawData ? point.rawData.open_meteo_api_url : point.openMeteoApiUrl || '#';
+            const docsUrl = point.rawData ? point.rawData.open_meteo_docs_url : point.openMeteoDocsUrl || '#';
+            
+            infoContent.innerHTML = `
+                <div class="info-item">
+                    <span class="info-label">Dataset:</span> ${point.datasetName || 'User Data'}
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Date:</span> ${point.date || 'N/A'}
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Coordinates:</span> ${point.coordinates}
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Elevation:</span> ${point.elevationFt} ft
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Avg Soil Temp (${averageDays} days):</span> ${point.soilTemp ? point.soilTemp.toFixed(1) : 'N/A'} °F (${tempDepth})
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Avg Soil Moisture (${averageDays} days):</span> ${point.soilMoisture ? point.soilMoisture.toFixed(3) : 'N/A'} (${moistureDepth})
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Observation Link:</span> 
+                    <a href="${observationLink}" target="_blank" class="link">${observationLink}</a>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Open-Meteo Docs:</span> 
+                    <a href="${docsUrl}" target="_blank" class="link">${docsUrl}</a>
+                </div>
+            `;
+            
+            infoPanel.classList.add('active');
+            
+            // Fetch and display the soil temperature chart if API URL is available
+            if (apiUrl && apiUrl !== '#') {
+                try {
+                    const response = await fetch(apiUrl);
+                    if (response.ok) {
+                        const data = await response.json();
+                        displaySoilTempChart(data);
+                        soilTempChartContainer.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Error fetching soil temperature data:', error);
+                }
+            }
+            
+            infoPanel.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Create the soil temperature chart
+        function displaySoilTempChart(apiData) {
+            const ctx = document.getElementById('soil-temp-chart').getContext('2d');
+            
+            if (window.soilTempChart) {
+                window.soilTempChart.destroy();
+            }
+            
+            const dates = apiData.daily.time;
+            let temps;
+            
+            // Get temperature data for the selected depth
+            switch(tempDepth) {
+                case '0_to_7cm':
+                    temps = apiData.daily.soil_temperature_0_to_7cm_mean;
+                    break;
+                case '7_to_28cm':
+                    temps = apiData.daily.soil_temperature_7_to_28cm_mean;
+                    break;
+                case '28_to_100cm':
+                    temps = apiData.daily.soil_temperature_28_to_100cm_mean;
+                    break;
+                case '0_to_100cm':
+                    temps = apiData.daily.soil_temperature_0_to_100cm_mean;
+                    break;
+                default:
+                    temps = apiData.daily.soil_temperature_7_to_28cm_mean;
+            }
+            
+            const formattedDates = dates.map(date => {
+                const d = new Date(date);
+                return `${d.getMonth() + 1}/${d.getDate()}`;
+            });
+            
+            const avgTemp = temps.reduce((sum, temp) => sum + temp, 0) / temps.length;
+            
+            window.soilTempChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: formattedDates,
+                    datasets: [
+                        {
+                            label: `Soil Temperature (${tempDepth}) °F`,
+                            data: temps,
+                            borderColor: '#8B4513',
+                            backgroundColor: 'rgba(139, 69, 19, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Average',
+                            data: temps.map(() => avgTemp),
+                            borderColor: '#FF6B6B',
+                            borderWidth: 1,
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Temp: ${context.parsed.y.toFixed(1)}°F`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Temperature (°F)'
+                            },
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Fetch data from Open-Meteo API for user-added points
+        async function fetchOpenMeteoData(latitude, longitude, date) {
+            const loadingDiv = document.getElementById('loading');
+            loadingDiv.style.display = 'block';
+            
+            try {
+                const observationDate = new Date(date);
+                const startDate = new Date(observationDate);
+                startDate.setDate(observationDate.getDate() - averageDays);
+                
+                const startDateStr = startDate.toISOString().split('T')[0];
+                const endDateStr = observationDate.toISOString().split('T')[0];
+                
+                const apiUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${latitude}&longitude=${longitude}&start_date=${startDateStr}&end_date=${endDateStr}&daily=soil_temperature_0_to_7cm_mean,soil_temperature_7_to_28cm_mean,soil_temperature_28_to_100cm_mean,soil_temperature_0_to_100cm_mean,soil_moisture_0_to_7cm_mean,soil_moisture_7_to_28cm_mean,soil_moisture_28_to_100cm_mean,soil_moisture_0_to_100cm_mean&timezone=America%2FLos_Angeles&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch`;
+                
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Calculate averages for all depths
+                const depthAverages = {};
+                
+                // Temperature averages
+                ['0_to_7cm', '7_to_28cm', '28_to_100cm', '0_to_100cm'].forEach(depth => {
+                    const key = `soil_temperature_${depth}_mean`;
+                    if (data.daily[key]) {
+                        const temps = data.daily[key];
+                        depthAverages[`temp_${depth}`] = temps.reduce((sum, temp) => sum + temp, 0) / temps.length;
+                    }
+                });
+                
+                // Moisture averages
+                ['0_to_7cm', '7_to_28cm', '28_to_100cm', '0_to_100cm'].forEach(depth => {
+                    const key = `soil_moisture_${depth}_mean`;
+                    if (data.daily[key]) {
+                        const moistures = data.daily[key];
+                        depthAverages[`moisture_${depth}`] = moistures.reduce((sum, moisture) => sum + moisture, 0) / moistures.length;
+                    }
+                });
+                
+                // Get elevation
+                const elevation = data.elevation;
+                const elevationFt = elevation * 3.28084;
+                
+                // Extract date components
+                const dayOfMonth = observationDate.getDate();
+                const monthFraction = observationDate.getMonth() + (dayOfMonth / 31);
+                
+                // Create new data point
+                const newPoint = {
+                    datasetId: 'user_data',
+                    datasetName: 'User Data',
+                    datasetColor: '#FF6B6B',
+                    observationUrl: '#',
+                    date: endDateStr,
+                    coordinates: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+                    elevationFt: Math.round(elevationFt),
+                    soilTemp: depthAverages[`temp_${tempDepth}`],
+                    soilMoisture: depthAverages[`moisture_${moistureDepth}`],
+                    month: observationDate.getMonth() + 1,
+                    monthName: observationDate.toLocaleString('default', { month: 'short' }),
+                    monthDay: dayOfMonth,
+                    monthFraction: monthFraction,
+                    yearMonth: observationDate.getFullYear() + '-' + 
+                                String(observationDate.getMonth() + 1).padStart(2, '0'),
+                    latitude: latitude,
+                    longitude: longitude,
+                    openMeteoApiUrl: apiUrl,
+                    openMeteoDocsUrl: apiUrl.replace('archive-api.open-meteo.com/v1/archive', 'open-meteo.com/en/docs/historical-weather-api'),
+                    depthAverages: depthAverages
+                };
+                
+                // Clear previous user data and add new point
+                userData = [newPoint];
+                allData = [...originalData, ...userData];
+                
+                // Update charts with new data
+                updateDataDisplay();
+                
+                // Update map with new marker
+                if (marker) {
+                    map.removeLayer(marker);
+                }
+                marker = L.marker([latitude, longitude], {
+                    icon: L.divIcon({
+                        className: 'user-marker',
+                        html: '<div style="background-color: #FF6B6B; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 3px rgba(0,0,0,0.5);"></div>',
+                        iconSize: [10, 10]
+                    })
+                }).addTo(map);
+                
+                // Show info for the new point
+                showPointInfo(newPoint);
+                
+            } catch (error) {
+                console.error('Error fetching Open-Meteo data:', error);
+                alert(`Error fetching data: ${error.message}\n\nNote: The Open-Meteo API may not have data for the selected date range or location. Try a different date or coordinates.`);
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Initialize NDJSON directory
+                initNdjsonDirectory();
+                
+                // Initialize the rest of the application
+                initMap();
+                initCharts();
+                
+                // Add event listener for the fetch data button
+                document.getElementById('fetch-data').addEventListener('click', function() {
+                    const latitude = parseFloat(document.getElementById('latitude').value);
+                    const longitude = parseFloat(document.getElementById('longitude').value);
+                    const date = document.getElementById('date').value;
+                    
+                    if (isNaN(latitude) || isNaN(longitude)) {
+                        alert('Please enter valid latitude and longitude values.');
+                        return;
+                    }
+                    
+                    if (!date) {
+                        alert('Please select a date.');
+                        return;
+                    }
+                    
+                    fetchOpenMeteoData(latitude, longitude, date);
+                });
+                
+                // Add event listener for Enter key in input fields
+                document.getElementById('latitude').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        document.getElementById('fetch-data').click();
+                    }
+                });
+                
+                document.getElementById('longitude').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        document.getElementById('fetch-data').click();
+                    }
+                });
+                
+                // Set default date to current date
+                const today = new Date();
+                const todayFormatted = today.toISOString().split('T')[0];
+                document.getElementById('date').value = todayFormatted;
+                
+                // Directory toggle
+                document.getElementById('toggle-directory').addEventListener('click', function() {
+                    const content = document.getElementById('directory-content');
+                    const icon = this.querySelector('i');
+                    content.classList.toggle('collapsed');
+                    icon.classList.toggle('fa-chevron-up');
+                    icon.classList.toggle('fa-chevron-down');
+                });
+                
+                // Apply settings button
+				document.getElementById('apply-settings').addEventListener('click', function() {
+					averageDays = parseInt(document.getElementById('average-days').value);
+					tempDepth = document.getElementById('temp-depth').value;
+					moistureDepth = document.getElementById('moisture-depth').value;
+					updateDataDisplay(false); // false = full reprocessing needed
+				});
+                
+                // Initialize with default settings
+                updateMonthLegend();
+                setTimeout(() => {
+                    if (typeof updateMapPoints === 'function') {
+                        updateMapPoints();
+                    }
+                }, 200);
+                
+            } catch (error) {
+                console.error('Error initializing application:', error);
+                alert('Error initializing application. Please check the console for details.');
+            }
+        });
+    </script>
+</body>
+</html>
