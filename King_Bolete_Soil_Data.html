@@ -131,6 +131,15 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
         
+		.input-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			top: 0;
+			background-color: #fff;
+			z-index: 10;
+		}
+
         .input-title {
             color: #8B4513;
             margin-bottom: 20px;
@@ -740,14 +749,6 @@
 				<div class="ndjson-directory">
 					<div class="directory-header">
 						<div class="directory-title">Data Files</div>
-						<div style="display: flex; gap: 10px;">
-							<button id="clear-user-points" title="Clear user points">🗑️</button>
-							<input type="color" id="user-point-color" value="#FF6B6B" title="User point color">
-							<input type="color" id="highlight-color" value="#FFFF00" title="Highlight color">
-							<label style="display: flex; align-items: center; gap: 5px; font-size: 12px;">
-								<input type="checkbox" id="disable-scroll" checked> Scroll
-							</label>
-						</div>
 					</div>
 					<div class="directory-content" id="directory-content">
 						<!-- Directory content will be populated by JavaScript -->
@@ -798,7 +799,17 @@
 			</div>
 			
 			<div class="input-section">
-                <h2 class="input-title">Add New Location Data</h2>
+				<div class="input-header">
+					<h2 class="input-title">Add New Location Data</h2>
+					<div style="display: flex; gap: 10px;">
+						<button id="clear-user-points" title="Clear user points">🗑️</button>
+						<input type="color" id="user-point-color" value="#FF6B6B" title="User point color">
+						<input type="color" id="highlight-color" value="#FFFF00" title="Highlight color">
+						<label style="display: flex; align-items: center; gap: 5px; font-size: 12px;">
+							<input type="checkbox" id="disable-scroll" checked> Scroll
+						</label>
+					</div>
+				</div>
                 <p>Enter coordinates manually or click on the map to select a location. The system will retrieve the average soil temperature and elevation data from the Open-Meteo Historical Weather API.</p>
                 
                 <div class="input-group">
@@ -944,9 +955,35 @@
 
 		function clearUserPoints() {
 			userData = [];
-			allData = [...originalData];
+			
+			// Remove user data dataset from all charts
+			const charts = [elevationTempChart, elevationMoistureChart, elevationDateChart, 
+							tempDateChart, moistureDateChart, tempMoistureChart];
+			
+			charts.forEach(chart => {
+				if (chart && chart.data && chart.data.datasets) {
+					// Find and remove the user data dataset
+					const userDatasetIndex = chart.data.datasets.findIndex(ds => ds.datasetId === 'user_data');
+					if (userDatasetIndex > -1) {
+						chart.data.datasets.splice(userDatasetIndex, 1);
+						chart.update('none');
+					}
+				}
+			});
+			
+			// Remove user points from map
+			mapPoints.forEach((marker, index) => {
+				if (marker._datasetId === 'user_data') {
+					map.removeLayer(marker);
+					mapPoints.splice(index, 1);
+				}
+			});
+			
+			// Update data table
+			populateDataTable();
+			
+			// Clear any highlights and info panel
 			removeHighlights();
-			updateDataDisplay(true);
 			document.getElementById('info-panel').classList.remove('active');
 		}
 
@@ -1071,6 +1108,18 @@
 					if (highlightIndex > -1) {
 						item.chart.data.datasets.splice(highlightIndex, 1);
 						item.chart.update('none');
+					} else if (marker._datasetId === 'user_data') {
+						// User point
+						marker.setStyle({
+							fillColor: userPointColor,
+							color: userPointColor,
+							fillOpacity: 0.8,
+							weight: 2,
+							radius: 5
+						});
+						
+						// Remove highlight flag
+						delete marker._isHighlighted;
 					}
 				}
 			});
@@ -1849,46 +1898,54 @@
 					
 					if (!inElevationRange || !inTempRange || !inMoistureRange || !inMonthRange) return;
 					
-					// User points
-					const isHighlighted = highlightedPoint && 
-										  highlightedPoint.latitude === point.latitude && 
-										  highlightedPoint.longitude === point.longitude;
-					
-					if (isHighlighted) {
-						// Highlighted user point
-						const marker = L.circleMarker([point.latitude, point.longitude], {
-							radius: 7,
-							color: userPointColor,
-							fillColor: userPointColor,
-							fillOpacity: 0.9,
-							weight: 3
-						}).addTo(map);
+					if (point.datasetId === 'user_data') {
+						// User points
+						const isHighlighted = highlightedPoint && 
+											  highlightedPoint.latitude === point.latitude && 
+											  highlightedPoint.longitude === point.longitude;
 						
-						marker.on('click', (e) => {
-							L.DomEvent.stopPropagation(e);
-							highlightPoint(point);
-							showPointInfo(point);
-						});
-						
-						mapPoints.push(marker);
-					} else {
-						// Regular user point
-						const marker = L.circleMarker([point.latitude, point.longitude], {
-							radius: 5,
-							color: userPointColor,
-							fillColor: userPointColor,
-							fillOpacity: 0.8,
-							weight: 2,
-							className: 'user-point-marker'
-						}).addTo(map);
-						
-						marker.on('click', (e) => {
-							L.DomEvent.stopPropagation(e);
-							highlightPoint(point);
-							showPointInfo(point);
-						});
-						
-						mapPoints.push(marker);
+						if (isHighlighted) {
+							// Highlighted user point
+							const marker = L.circleMarker([point.latitude, point.longitude], {
+								radius: 7,
+								color: userPointColor,
+								fillColor: userPointColor,
+								fillOpacity: 0.9,
+								weight: 3
+							}).addTo(map);
+							
+							marker._datasetId = 'user_data';
+							marker._isHighlighted = true;
+							
+							marker.on('click', (e) => {
+								L.DomEvent.stopPropagation(e);
+								highlightPoint(point);
+								showPointInfo(point);
+							});
+							
+							mapPoints.push(marker);
+						} else {
+							// Regular user point
+							const marker = L.circleMarker([point.latitude, point.longitude], {
+								radius: 5,
+								color: userPointColor,
+								fillColor: userPointColor,
+								fillOpacity: 0.8,
+								weight: 2,
+								className: 'user-point-marker'
+							}).addTo(map);
+							
+							marker._datasetId = 'user_data';
+							marker._isHighlighted = false;
+							
+							marker.on('click', (e) => {
+								L.DomEvent.stopPropagation(e);
+								highlightPoint(point);
+								showPointInfo(point);
+							});
+							
+							mapPoints.push(marker);
+						}
 					}
 				});
 			}
@@ -2396,9 +2453,25 @@
 		}
 
 		function updateMapPointColors() {
-			// Instead of recreating all points, update existing ones if possible
+			// If no markers exist yet, return early
+			if (mapPoints.length === 0) return;
+			
+			// Update existing markers with new colors
 			mapPoints.forEach(marker => {
 				const datasetId = marker._datasetId;
+				
+				// Skip highlighted markers completely
+				if (marker._isHighlighted) return;
+				
+				// Handle user data points
+				if (datasetId === 'user_data') {
+					marker.setStyle({
+						color: userPointColor,
+						fillColor: userPointColor,
+						fillOpacity: 0.8
+					});
+					return;
+				}
 				
 				if (datasetId && activeDatasets[datasetId]) {
 					const datasetInfo = activeDatasets[datasetId];
@@ -2411,18 +2484,30 @@
 						fillOpacity = parseInt(alphaHex, 16) / 255;
 					}
 					
-					// Update marker style but preserve highlight state
-					const isHighlighted = highlightedPoint && 
-										  highlightedPoint.datasetId === datasetId &&
-										  highlightedPoint.latitude === marker.getLatLng().lat &&
-										  highlightedPoint.longitude === marker.getLatLng().lng;
+					marker.setStyle({
+						color: color,
+						fillColor: color,
+						fillOpacity: fillOpacity
+					});
+				} else {
+					// Try to find the marker's corresponding data point
+					const latlng = marker.getLatLng();
 					
-					if (!isHighlighted) {
+					// Look for user data points that match this marker's location
+					const userPoint = userData.find(point => 
+						Math.abs(point.latitude - latlng.lat) < 0.0001 && 
+						Math.abs(point.longitude - latlng.lng) < 0.0001
+					);
+					
+					if (userPoint) {
+						// This is a user point
 						marker.setStyle({
-							color: color,
-							fillColor: color,
-							fillOpacity: fillOpacity
+							color: userPointColor,
+							fillColor: userPointColor,
+							fillOpacity: 0.8
 						});
+						// Update the datasetId for future reference
+						marker._datasetId = 'user_data';
 					}
 				}
 			});
@@ -3020,6 +3105,11 @@
 						userData[0].datasetColor = userPointColor;
 						// Pass true to preserve highlights
 						updateVisualsOnly();
+						
+						// Also update the user data array
+						userData.forEach(point => {
+							point.datasetColor = userPointColor;
+						});
 					}
 				});
 				
