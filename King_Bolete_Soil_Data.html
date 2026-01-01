@@ -684,6 +684,41 @@
             text-overflow: ellipsis;
             font-size: 9px;
         }
+
+		.highlighted-point {
+			background-color: #FFFF00 !important;
+			border-color: #FFD700 !important;
+			z-index: 10000 !important;
+		}
+
+		.chart-highlight {
+			background-color: #FFFF00 !important;
+			border-color: #FFD700 !important;
+			border-width: 3px !important;
+			z-index: 10 !important;
+		}
+
+		#user-point-color, #highlight-color {
+			width: 30px;
+			height: 30px;
+			border: 1px solid #ddd;
+			border-radius: 4px;
+			cursor: pointer;
+			padding: 0;
+		}
+
+		#clear-user-points {
+			background: none;
+			border: 1px solid #ddd;
+			border-radius: 4px;
+			padding: 5px 10px;
+			cursor: pointer;
+			font-size: 16px;
+		}
+
+		#clear-user-points:hover {
+			background-color: #f0f0f0;
+		}
     </style>
 </head>
 <body>
@@ -705,6 +740,14 @@
 				<div class="ndjson-directory">
 					<div class="directory-header">
 						<div class="directory-title">Data Files</div>
+						<div style="display: flex; gap: 10px;">
+							<button id="clear-user-points" title="Clear user points">🗑️</button>
+							<input type="color" id="user-point-color" value="#FF6B6B" title="User point color">
+							<input type="color" id="highlight-color" value="#FFFF00" title="Highlight color">
+							<label style="display: flex; align-items: center; gap: 5px; font-size: 12px;">
+								<input type="checkbox" id="disable-scroll" checked> Scroll
+							</label>
+						</div>
 					</div>
 					<div class="directory-content" id="directory-content">
 						<!-- Directory content will be populated by JavaScript -->
@@ -887,11 +930,25 @@
         let tempRange = [0, 100];
         let moistureRange = [0, 1];
         let monthRange = [1, 12];
+		let highlightedPoint = null;
+		let highlightedChartElements = [];
         
         // Settings
         let averageDays = 7;
         let tempDepth = '7_to_28cm';
         let moistureDepth = '7_to_28cm';
+
+		let userPointColor = '#FF6B6B';
+		let highlightColor = '#FFFF00';
+		let enableScroll = true;
+
+		function clearUserPoints() {
+			userData = [];
+			allData = [...originalData];
+			removeHighlights();
+			updateDataDisplay(true);
+			document.getElementById('info-panel').classList.remove('active');
+		}
 
 		// Debouncer function
 		function debounce(func, wait) {
@@ -904,6 +961,153 @@
 				clearTimeout(timeout);
 				timeout = setTimeout(later, wait);
 			};
+		}
+
+		// Function to highlight a point across all visualizations
+		function highlightPoint(point) {
+			// Remove previous highlights
+			removeHighlights();
+			
+			// Store the highlighted point
+			highlightedPoint = point;
+			
+			// Highlight on map
+			mapPoints.forEach(marker => {
+				const latlng = marker.getLatLng();
+				if (Math.abs(latlng.lat - point.latitude) < 0.0001 && 
+					Math.abs(latlng.lng - point.longitude) < 0.0001) {
+					
+					// Check if this is a user point
+					const isUserPoint = point.datasetId === 'user_data';
+					
+					if (isUserPoint) {
+						// User points
+						marker.setStyle({
+							fillColor: userPointColor,
+							color: userPointColor,
+							fillOpacity: 0.9,
+							weight: 3,
+							radius: 7
+						});
+					} else {
+						// Regular points
+						marker.setStyle({
+							fillColor: highlightColor,
+							color: highlightColor,
+							fillOpacity: 0.9,
+							weight: 3,
+							radius: 5
+						});
+					}
+					
+					marker.bringToFront();
+				}
+			});
+			
+			// Highlight on charts
+			const charts = [elevationTempChart, elevationMoistureChart, elevationDateChart, 
+							tempDateChart, moistureDateChart, tempMoistureChart];
+
+			charts.forEach(chart => {
+				if (!chart || !chart.data || !chart.data.datasets) return;
+				
+				chart.data.datasets.forEach((dataset, datasetIndex) => {
+					if (!dataset.data) return;
+					
+					dataset.data.forEach((dataPoint, pointIndex) => {
+						// Check if this is the same point
+						if (dataPoint === point || 
+							(dataPoint.latitude === point.latitude && 
+							 dataPoint.longitude === point.longitude &&
+							 dataPoint.date === point.date)) {
+							
+							// Create a separate highlighted dataset for this point
+							const observationId = point.observationUrl ? 
+								point.observationUrl.split('/').pop() : // Extract ID from URL
+								'User Point';
+							const highlightDataset = {
+								label: `Obs: ${observationId}`,
+								data: [{
+									x: dataPoint.x || dataPoint[getXProperty(chart)],
+									y: dataPoint.y || dataPoint[getYProperty(chart)],
+									...dataPoint // Keep all original properties
+								}],
+								backgroundColor: highlightColor,
+								borderColor: highlightColor,
+								borderWidth: 3,
+								pointRadius: 8,
+								pointHoverRadius: 10,
+								order: -1, // Ensure it renders on top
+								datasetId: 'highlighted_point'
+							};
+							
+							// Check if highlight dataset already exists
+							const existingIndex = chart.data.datasets.findIndex(ds => ds.datasetId === 'highlighted_point');
+							if (existingIndex > -1) {
+								chart.data.datasets[existingIndex] = highlightDataset;
+							} else {
+								chart.data.datasets.push(highlightDataset);
+							}
+							
+							highlightedChartElements.push({
+								chart: chart,
+								datasetIndex: chart.data.datasets.length - 1
+							});
+						}
+					});
+				});
+				
+				chart.update('none');
+			});
+		}
+
+		// Function to remove all highlights
+		function removeHighlights() {
+			// Remove chart highlights
+			highlightedChartElements.forEach(item => {
+				if (item.chart && item.chart.data && item.chart.data.datasets) {
+					// Remove the highlighted dataset
+					const highlightIndex = item.chart.data.datasets.findIndex(ds => ds.datasetId === 'highlighted_point');
+					if (highlightIndex > -1) {
+						item.chart.data.datasets.splice(highlightIndex, 1);
+						item.chart.update('none');
+					}
+				}
+			});
+			
+			highlightedChartElements = [];
+			highlightedPoint = null;
+			
+			// Simply update the map points to redraw them with original colors
+			updateMapPoints();
+		}
+
+		// Function to save original marker styles
+		function saveOriginalMarkerStyles() {
+			mapPoints.forEach(marker => {
+				if (!marker.options._originalFillColor) {
+					marker.options._originalFillColor = marker.options.fillColor;
+					marker.options._originalColor = marker.options.color;
+				}
+			});
+		}
+
+		// Helper function to get X property based on chart
+		function getXProperty(chart) {
+			if (chart === elevationTempChart) return 'soilTemp';
+			if (chart === elevationMoistureChart) return 'soilMoisture';
+			if (chart === elevationDateChart || chart === tempDateChart || chart === moistureDateChart) return 'monthFraction';
+			if (chart === tempMoistureChart) return 'soilTemp';
+			return 'soilTemp';
+		}
+
+		// Helper function to get Y property based on chart
+		function getYProperty(chart) {
+			if (chart === elevationTempChart || chart === elevationMoistureChart || chart === elevationDateChart) return 'elevationFt';
+			if (chart === tempDateChart) return 'soilTemp';
+			if (chart === moistureDateChart) return 'soilMoisture';
+			if (chart === tempMoistureChart) return 'soilMoisture';
+			return 'elevationFt';
 		}
         
         // Color scales
@@ -1056,11 +1260,12 @@
 					this.querySelector('i').style.display = fileData.active ? 'block' : 'none';
 					
 					if (fileData.active && fileData.data.length === 0) {
-						// Load the NDJSON file - needs full reprocessing
-						loadNdjsonFile(fileId, fileData.filePath);
+						// Load the NDJSON file
+						loadNdjsonFile(fileId, fileData.filePath).then(() => {
+						});
 					} else {
-						// Just toggle visibility - visual update only
-						updateDataDisplay(false); // Changed to false to reprocess data
+						// Just toggle visibility
+						updateDataDisplay(false);
 					}
 				});
 			});
@@ -1207,12 +1412,16 @@
 				processNdjsonData();
 				populateDataTable(); // Only needed when data changes
 				updateCharts(); // Full chart update with new data
+				// Create map points with fresh data
+				updateMapPoints(); // This will create the initial markers
 			} else {
 				// Just update colors/visuals
 				updateChartColors();
+				// Only update map point colors if markers already exist
+				if (mapPoints.length > 0) {
+					updateMapPointColors();
+				}
 			}
-			
-			updateMapPointColors();
 		}
         
         // Initialize map
@@ -1224,9 +1433,8 @@
             }).addTo(map);
             
             // Add click event to map (but not on controls)
-            map.on('click', function(e) {
-                const clickedElement = e.originalEvent.target;
-                
+			map.on('click', function(e) {
+				const clickedElement = e.originalEvent.target;
                 const isControl = clickedElement.closest('.map-controls') || 
                                  clickedElement.closest('.noUi-handle') ||
                                  clickedElement.closest('.fullscreen-btn');
@@ -1416,172 +1624,215 @@
             }
         }
         
-        function updateMapPoints() {
-            const legendContainer = document.querySelector('.legend-container');
-            const gradientLegend = document.getElementById('gradient-legend');
-            const monthLegend = document.getElementById('month-legend');
-            const legendMin = document.getElementById('legend-min');
-            const legendMax = document.getElementById('legend-max');
-            
-            if (legendContainer) {
-                legendContainer.classList.toggle('active', 
-                    currentView === 'elevation' || currentView === 'temp' || currentView === 'moisture' || currentView === 'month');
-            }
-            
-            // Update legend content based on current view
-            if (gradientLegend && legendMin && legendMax) {
-                const legendLabels = document.querySelector('.legend-labels');
-                
-                switch(currentView) {
-                    case 'elevation':
-                        gradientLegend.style.display = 'block';
-                        monthLegend.style.display = 'none';
-                        if (legendLabels) legendLabels.style.display = 'flex';
-                        gradientLegend.style.background = 'linear-gradient(to right, #6A0DAD, #0000FF, #00FF00, #FFFF00, #FFA500, #FF0000)';
-                        legendMin.textContent = '0 ft';
-                        legendMax.textContent = '8000 ft';
-                        if (legendContainer) {
-                            legendContainer.style.maxWidth = '200px';
-                        }
-                        break;
-                        
-                    case 'temp':
-                        gradientLegend.style.display = 'block';
-                        monthLegend.style.display = 'none';
-                        if (legendLabels) legendLabels.style.display = 'flex';
-                        gradientLegend.style.background = 'linear-gradient(to right, #0000FF, #FF0000)';
-                        legendMin.textContent = '30°F';
-                        legendMax.textContent = '70°F';
-                        if (legendContainer) {
-                            legendContainer.style.maxWidth = '200px';
-                        }
-                        break;
-                        
-                    case 'moisture':
-                        gradientLegend.style.display = 'block';
-                        monthLegend.style.display = 'none';
-                        if (legendLabels) legendLabels.style.display = 'flex';
-                        gradientLegend.style.background = 'linear-gradient(to right, #FFD700, #00008B)';
-                        legendMin.textContent = '0.0';
-                        legendMax.textContent = '0.5';
-                        if (legendContainer) {
-                            legendContainer.style.maxWidth = '200px';
-                        }
-                        break;
-                        
-                    case 'month':
-                        gradientLegend.style.display = 'none';
-                        monthLegend.style.display = 'grid';
-                        if (legendLabels) legendLabels.style.display = 'none';
-                        if (legendContainer) {
-                            legendContainer.style.maxWidth = '180px';
-                        }
-                        break;
-                        
-                    default:
-                        if (gradientLegend) gradientLegend.style.display = 'block';
-                        if (monthLegend) monthLegend.style.display = 'none';
-                        if (legendLabels) legendLabels.style.display = 'flex';
-                        if (legendMin) legendMin.textContent = 'Min';
-                        if (legendMax) legendMax.textContent = 'Max';
-                }
-            }
-            
-            // Clear existing points
-            mapPoints.forEach(point => map.removeLayer(point));
-            mapPoints = [];
-            
-            if (!currentView) {
-                currentView = 'default';
-            }
-            
-            // Show/hide sliders based on current view
-            const elevationSlider = document.getElementById('elevation-slider');
-            const tempSlider = document.getElementById('temp-slider');
-            const moistureSlider = document.getElementById('moisture-slider');
-            const monthSlider = document.getElementById('month-slider');
-            
-            if (elevationSlider) elevationSlider.classList.toggle('active', currentView === 'elevation');
-            if (tempSlider) tempSlider.classList.toggle('active', currentView === 'temp');
-            if (moistureSlider) moistureSlider.classList.toggle('active', currentView === 'moisture');
-            if (monthSlider) monthSlider.classList.toggle('active', currentView === 'month');
-            
-            // Get current slider values when switching views
-            if (currentView === 'elevation' && window.elevationSlider) {
-                const values = window.elevationSlider.get();
-                elevationRange = values.map(v => parseFloat(v));
-            } else if (currentView === 'temp' && window.tempSlider) {
-                const values = window.tempSlider.get();
-                tempRange = values.map(v => parseFloat(v));
-            } else if (currentView === 'moisture' && window.moistureSlider) {
-                const values = window.moistureSlider.get();
-                moistureRange = values.map(v => parseFloat(v));
-            } else if (currentView === 'month' && window.monthSlider) {
-                const values = window.monthSlider.get();
-                monthRange = values.map(v => Math.round(parseFloat(v)));
-                updateMonthLabels();
-            }
-            
-            // If not in a filtered view, use default ranges
-            if (currentView !== 'elevation') elevationRange = [0, 8000];
-            if (currentView !== 'temp') tempRange = [30, 70];
-            if (currentView !== 'moisture') moistureRange = [0, 0.5];
-            if (currentView !== 'month') monthRange = [1, 12];
-            
-            // Plot points from all active datasets
-            chartData.forEach(point => {
-                // Filter based on ranges
-                const inElevationRange = point.elevationFt >= elevationRange[0] && 
-                                      point.elevationFt <= elevationRange[1];
-                const inTempRange = point.soilTemp !== null && 
-                                 point.soilTemp >= tempRange[0] && 
-                                 point.soilTemp <= tempRange[1];
-                const inMoistureRange = point.soilMoisture !== null && 
-                                     point.soilMoisture >= moistureRange[0] && 
-                                     point.soilMoisture <= moistureRange[1];
-                const inMonthRange = point.month >= monthRange[0] && 
-                                  point.month <= monthRange[1];
-                
-                if (!inElevationRange || !inTempRange || !inMoistureRange || !inMonthRange) return;
-                
-                // Set color based on current view
-                let color, fillColor;
-                
-                switch(currentView) {
-                    case 'elevation':
-                        color = elevationColorScale(point.elevationFt);
-                        fillColor = color;
-                        break;
-                    case 'temp':
-                        color = tempColorScale(point.soilTemp);
-                        fillColor = color;
-                        break;
-                    case 'moisture':
-                        color = moistureColorScale(point.soilMoisture);
-                        fillColor = color;
-                        break;
-                    case 'month':
-                        color = monthColors[point.month - 1];
-                        fillColor = color;
-                        break;
-                    default:
-                        // Use dataset color in default view
-                        color = point.datasetColor;
-                        fillColor = color;
-                }
-                
-                const marker = L.circleMarker([point.latitude, point.longitude], {
-                    radius: 5,
-                    color: color,
-                    fillColor: fillColor,
-                    fillOpacity: 0.8,
-                    weight: 1
-                }).addTo(map);
-                
-                marker.on('click', () => showPointInfo(point));
-                mapPoints.push(marker);
-            });
-			// Plot user-added points on top
+		function updateMapPoints() {
+			const legendContainer = document.querySelector('.legend-container');
+			const gradientLegend = document.getElementById('gradient-legend');
+			const monthLegend = document.getElementById('month-legend');
+			const legendMin = document.getElementById('legend-min');
+			const legendMax = document.getElementById('legend-max');
+			
+			if (legendContainer) {
+				legendContainer.classList.toggle('active', 
+					currentView === 'elevation' || currentView === 'temp' || currentView === 'moisture' || currentView === 'month');
+			}
+			
+			// Update legend content based on current view
+			if (gradientLegend && legendMin && legendMax) {
+				const legendLabels = document.querySelector('.legend-labels');
+				
+				switch(currentView) {
+					case 'elevation':
+						gradientLegend.style.display = 'block';
+						monthLegend.style.display = 'none';
+						if (legendLabels) legendLabels.style.display = 'flex';
+						gradientLegend.style.background = 'linear-gradient(to right, #6A0DAD, #0000FF, #00FF00, #FFFF00, #FFA500, #FF0000)';
+						legendMin.textContent = '0 ft';
+						legendMax.textContent = '8000 ft';
+						if (legendContainer) {
+							legendContainer.style.maxWidth = '200px';
+						}
+						break;
+						
+					case 'temp':
+						gradientLegend.style.display = 'block';
+						monthLegend.style.display = 'none';
+						if (legendLabels) legendLabels.style.display = 'flex';
+						gradientLegend.style.background = 'linear-gradient(to right, #0000FF, #FF0000)';
+						legendMin.textContent = '30°F';
+						legendMax.textContent = '70°F';
+						if (legendContainer) {
+							legendContainer.style.maxWidth = '200px';
+						}
+						break;
+						
+					case 'moisture':
+						gradientLegend.style.display = 'block';
+						monthLegend.style.display = 'none';
+						if (legendLabels) legendLabels.style.display = 'flex';
+						gradientLegend.style.background = 'linear-gradient(to right, #FFD700, #00008B)';
+						legendMin.textContent = '0.0';
+						legendMax.textContent = '0.5';
+						if (legendContainer) {
+							legendContainer.style.maxWidth = '200px';
+						}
+						break;
+						
+					case 'month':
+						gradientLegend.style.display = 'none';
+						monthLegend.style.display = 'grid';
+						if (legendLabels) legendLabels.style.display = 'none';
+						if (legendContainer) {
+							legendContainer.style.maxWidth = '180px';
+						}
+						break;
+						
+					default:
+						if (gradientLegend) gradientLegend.style.display = 'block';
+						if (monthLegend) monthLegend.style.display = 'none';
+						if (legendLabels) legendLabels.style.display = 'flex';
+						if (legendMin) legendMin.textContent = 'Min';
+						if (legendMax) legendMax.textContent = 'Max';
+				}
+			}
+			
+			// Clear existing points
+			mapPoints.forEach(point => map.removeLayer(point));
+			mapPoints = [];
+			
+			if (!currentView) {
+				currentView = 'default';
+			}
+			
+			// Show/hide sliders based on current view
+			const elevationSlider = document.getElementById('elevation-slider');
+			const tempSlider = document.getElementById('temp-slider');
+			const moistureSlider = document.getElementById('moisture-slider');
+			const monthSlider = document.getElementById('month-slider');
+			
+			if (elevationSlider) elevationSlider.classList.toggle('active', currentView === 'elevation');
+			if (tempSlider) tempSlider.classList.toggle('active', currentView === 'temp');
+			if (moistureSlider) moistureSlider.classList.toggle('active', currentView === 'moisture');
+			if (monthSlider) monthSlider.classList.toggle('active', currentView === 'month');
+			
+			// Get current slider values when switching views
+			if (currentView === 'elevation' && window.elevationSlider) {
+				const values = window.elevationSlider.get();
+				elevationRange = values.map(v => parseFloat(v));
+			} else if (currentView === 'temp' && window.tempSlider) {
+				const values = window.tempSlider.get();
+				tempRange = values.map(v => parseFloat(v));
+			} else if (currentView === 'moisture' && window.moistureSlider) {
+				const values = window.moistureSlider.get();
+				moistureRange = values.map(v => parseFloat(v));
+			} else if (currentView === 'month' && window.monthSlider) {
+				const values = window.monthSlider.get();
+				monthRange = values.map(v => Math.round(parseFloat(v)));
+				updateMonthLabels();
+			}
+			
+			// If not in a filtered view, use default ranges
+			if (currentView !== 'elevation') elevationRange = [0, 8000];
+			if (currentView !== 'temp') tempRange = [30, 70];
+			if (currentView !== 'moisture') moistureRange = [0, 0.5];
+			if (currentView !== 'month') monthRange = [1, 12];
+			
+			// Plot points from all active datasets
+			chartData.forEach(point => {
+				// Filter based on ranges
+				const inElevationRange = point.elevationFt >= elevationRange[0] && 
+									  point.elevationFt <= elevationRange[1];
+				const inTempRange = point.soilTemp !== null && 
+								 point.soilTemp >= tempRange[0] && 
+								 point.soilTemp <= tempRange[1];
+				const inMoistureRange = point.soilMoisture !== null && 
+									 point.soilMoisture >= moistureRange[0] && 
+									 point.soilMoisture <= moistureRange[1];
+				const inMonthRange = point.month >= monthRange[0] && 
+								  point.month <= monthRange[1];
+				
+				if (!inElevationRange || !inTempRange || !inMoistureRange || !inMonthRange) return;
+				
+				// Get alpha/opacity from activeDatasets
+				const datasetInfo = activeDatasets[point.datasetId];
+				let opacity = 0.8; // default
+				
+				if (datasetInfo) {
+					// Extract alpha from color string (if present)
+					const color = datasetInfo.color;
+					if (color.length === 9) { // #RRGGBBAA format
+						const alphaHex = color.substring(7, 9);
+						opacity = parseInt(alphaHex, 16) / 255;
+					}
+				}
+				
+				// Set color based on current view
+				let color, fillColor;
+				
+				switch(currentView) {
+					case 'elevation':
+						color = elevationColorScale(point.elevationFt);
+						fillColor = color;
+						break;
+					case 'temp':
+						color = tempColorScale(point.soilTemp);
+						fillColor = color;
+						break;
+					case 'moisture':
+						color = moistureColorScale(point.soilMoisture);
+						fillColor = color;
+						break;
+					case 'month':
+						color = monthColors[point.month - 1];
+						fillColor = color;
+						break;
+					default:
+						// Use dataset color in default view
+						color = datasetInfo ? datasetInfo.color : point.datasetColor;
+						fillColor = color;
+				}
+				
+				// Check if this is the currently highlighted point
+				const isHighlighted = highlightedPoint && 
+									  highlightedPoint.latitude === point.latitude && 
+									  highlightedPoint.longitude === point.longitude;
+				
+				if (isHighlighted) {
+					// Highlighted point - use highlight color with full opacity
+					const marker = L.circleMarker([point.latitude, point.longitude], {
+						radius: point.datasetId === 'user_data' ? 7 : 5,
+						color: highlightColor,
+						fillColor: highlightColor,
+						fillOpacity: 0.9,
+						weight: 3
+					}).addTo(map);
+					
+					marker.on('click', () => {
+						highlightPoint(point);
+						showPointInfo(point);
+					});
+					mapPoints.push(marker);
+				} else {
+					// Regular point - use calculated color and opacity
+					const marker = L.circleMarker([point.latitude, point.longitude], {
+						radius: point.datasetId === 'user_data' ? 5 : 3,
+						color: color,
+						fillColor: fillColor,
+						fillOpacity: opacity, // Use the calculated opacity
+						weight: point.datasetId === 'user_data' ? 2 : 1
+					}).addTo(map);
+					
+					// Store dataset info for reference
+					marker._datasetId = point.datasetId;
+					
+					marker.on('click', () => {
+						highlightPoint(point);
+						showPointInfo(point);
+					});
+					mapPoints.push(marker);
+				}
+			});
+			
+			// Plot user-added points
 			if (userData.length > 0) {
 				userData.forEach(point => {
 					// Filter based on ranges
@@ -1598,24 +1849,55 @@
 					
 					if (!inElevationRange || !inTempRange || !inMoistureRange || !inMonthRange) return;
 					
-					// User points always use their own color (red)
-					const color = '#FF6B6B';
-					const fillColor = '#FF3838';
+					// User points
+					const isHighlighted = highlightedPoint && 
+										  highlightedPoint.latitude === point.latitude && 
+										  highlightedPoint.longitude === point.longitude;
 					
-					const marker = L.circleMarker([point.latitude, point.longitude], {
-						radius: 8, // Larger than regular points
-						color: color,
-						fillColor: fillColor,
-						fillOpacity: 0.9,
-						weight: 2,
-						className: 'user-point-marker' // Add a class for potential styling
-					}).addTo(map);
-					
-					marker.on('click', () => showPointInfo(point));
-					mapPoints.push(marker);
+					if (isHighlighted) {
+						// Highlighted user point
+						const marker = L.circleMarker([point.latitude, point.longitude], {
+							radius: 7,
+							color: userPointColor,
+							fillColor: userPointColor,
+							fillOpacity: 0.9,
+							weight: 3
+						}).addTo(map);
+						
+						marker.on('click', (e) => {
+							L.DomEvent.stopPropagation(e);
+							highlightPoint(point);
+							showPointInfo(point);
+						});
+						
+						mapPoints.push(marker);
+					} else {
+						// Regular user point
+						const marker = L.circleMarker([point.latitude, point.longitude], {
+							radius: 5,
+							color: userPointColor,
+							fillColor: userPointColor,
+							fillOpacity: 0.8,
+							weight: 2,
+							className: 'user-point-marker'
+						}).addTo(map);
+						
+						marker.on('click', (e) => {
+							L.DomEvent.stopPropagation(e);
+							highlightPoint(point);
+							showPointInfo(point);
+						});
+						
+						mapPoints.push(marker);
+					}
 				});
 			}
-        }
+			
+			// Update month legend if needed
+			if (currentView === 'month') {
+				updateMonthLegend();
+			}
+		}
         
         function updateMonthLegend() {
             const monthLegend = document.getElementById('month-legend');
@@ -1717,24 +1999,25 @@
 						hitRadius: 10
 					}
 				},
-                onClick: (evt, elements) => {
-                    if (elements.length > 0) {
-                        const index = elements[0].index;
-                        const datasetIndex = elements[0].datasetIndex;
-                        
-                        // Find which dataset was clicked
-                        let dataPoint = null;
-                        if (datasetIndex < chartData.length) {
-                            dataPoint = chartData[index];
-                        } else if (datasetIndex === chartData.length && userData.length > 0) {
-                            dataPoint = userData[0];
-                        }
-                        
-                        if (dataPoint) {
-                            showPointInfo(dataPoint);
-                        }
-                    }
-                },
+				onClick: (evt, elements) => {
+					if (elements.length > 0) {
+						const index = elements[0].index;
+						const datasetIndex = elements[0].datasetIndex;
+						
+						// Find which dataset was clicked
+						let dataPoint = null;
+						const clickedDataset = evt.chart.data.datasets[datasetIndex];
+						
+						if (clickedDataset && clickedDataset.data[index]) {
+							dataPoint = clickedDataset.data[index];
+						}
+						
+						if (dataPoint) {
+							highlightPoint(dataPoint);
+							showPointInfo(dataPoint);
+						}
+					}
+				},
                 plugins: {
                     legend: {
                         display: true,
@@ -2059,11 +2342,22 @@
         }
         
 		function updateVisualsOnly() {
+			// Save current highlight state
+			const currentHighlight = highlightedPoint;
+			
 			// Update chart colors without reprocessing data
 			updateChartColors();
 			
 			// Update map point colors without rebuilding
 			updateMapPointColors();
+			
+			// Restore highlight if there was one
+			if (currentHighlight) {
+				// Use a small delay to ensure visuals are updated first
+				setTimeout(() => {
+					highlightPoint(currentHighlight);
+				}, 50);
+			}
 		}
 
 		function updateChartColors() {
@@ -2078,14 +2372,17 @@
 						// Skip if no data or no datasetId
 						if (!dataset.data || dataset.data.length === 0) return;
 						
+						// Skip highlighted datasets - don't change their colors
+						if (dataset.datasetId === 'highlighted_point') return;
+						
 						// Get the datasetId from the first data point
 						const firstPoint = dataset.data[0];
 						if (!firstPoint) return;
 						
 						if (firstPoint.datasetId === 'user_data') {
-							// User data - keep red color
-							dataset.backgroundColor = '#FF6B6B';
-							dataset.borderColor = '#FF3838';
+							// User data - use current userPointColor
+							dataset.backgroundColor = userPointColor;
+							dataset.borderColor = userPointColor;
 						} else if (firstPoint.datasetId && activeDatasets[firstPoint.datasetId]) {
 							// NDJSON dataset - use current color from activeDatasets
 							dataset.backgroundColor = activeDatasets[firstPoint.datasetId].color;
@@ -2093,44 +2390,41 @@
 						}
 					});
 					
-					chart.update('none'); // 'none' prevents animation for faster update
+					chart.update('none');
 				}
 			});
 		}
 
 		function updateMapPointColors() {
-			// Remove and recreate map points with new colors
-			mapPoints.forEach(point => map.removeLayer(point));
-			mapPoints = [];
-			
-			// Re-add all points with current colors
-			allData.forEach(point => {
-				let color, fillColor;
-				const datasetData = activeDatasets[point.datasetId];
+			// Instead of recreating all points, update existing ones if possible
+			mapPoints.forEach(marker => {
+				const datasetId = marker._datasetId;
 				
-				if (datasetData) {
-					// Use dataset color
-					color = datasetData.color;
-					fillColor = datasetData.color;
-				} else if (point.datasetId === 'user_data') {
-					// User data keeps its color
-					color = '#FF6B6B';
-					fillColor = '#FF3838';
-				} else {
-					color = point.datasetColor || '#8B4513';
-					fillColor = point.datasetColor || '#8B4513';
+				if (datasetId && activeDatasets[datasetId]) {
+					const datasetInfo = activeDatasets[datasetId];
+					const color = datasetInfo.color;
+					
+					// Extract alpha from color string
+					let fillOpacity = 0.8; // default
+					if (color.length === 9) { // #RRGGBBAA format
+						const alphaHex = color.substring(7, 9);
+						fillOpacity = parseInt(alphaHex, 16) / 255;
+					}
+					
+					// Update marker style but preserve highlight state
+					const isHighlighted = highlightedPoint && 
+										  highlightedPoint.datasetId === datasetId &&
+										  highlightedPoint.latitude === marker.getLatLng().lat &&
+										  highlightedPoint.longitude === marker.getLatLng().lng;
+					
+					if (!isHighlighted) {
+						marker.setStyle({
+							color: color,
+							fillColor: color,
+							fillOpacity: fillOpacity
+						});
+					}
 				}
-				
-				const marker = L.circleMarker([point.latitude, point.longitude], {
-					radius: point.datasetId === 'user_data' ? 8 : 5,
-					color: color,
-					fillColor: fillColor,
-					fillOpacity: 0.8,
-					weight: point.datasetId === 'user_data' ? 2 : 1
-				}).addTo(map);
-				
-				marker.on('click', () => showPointInfo(point));
-				mapPoints.push(marker);
 			});
 		}
 
@@ -2164,10 +2458,10 @@
 				datasets.push({
 					label: 'Your Added Point',
 					data: userData,
-					backgroundColor: '#FF6B6B',
-					borderColor: '#FF3838',
-					borderWidth: 2,
-					pointRadius: 5,
+					backgroundColor: userPointColor,
+					borderColor: userPointColor,
+					borderWidth: 3,
+					pointRadius: 8,
 					pointHoverRadius: 10,
 					order: 0,
 					datasetId: 'user_data'
@@ -2199,7 +2493,7 @@
 						...dataset,
 						data: filteredData,
 						// Ensure user data has larger points and renders on top
-						pointRadius: dataset.datasetId === 'user_data' ? 5 : 3,
+						pointRadius: dataset.datasetId === 'user_data' ? 8 : 3,
 						pointHoverRadius: dataset.datasetId === 'user_data' ? 10 : 5,
 						order: dataset.datasetId === 'user_data' ? 0 : 1
 					};
@@ -2241,6 +2535,7 @@
         
         // Show point information in the info panel
 		async function showPointInfo(point) {
+			highlightPoint(point);
 			const infoPanel = document.getElementById('info-panel');
 			const infoContent = document.getElementById('info-content');
 			const soilTempChartContainer = document.getElementById('soil-temp-chart-container');
@@ -2296,7 +2591,9 @@
 				}
 			}
 			
-			infoPanel.scrollIntoView({ behavior: 'smooth' });
+			if (enableScroll) {
+				infoPanel.scrollIntoView({ behavior: 'smooth' });
+			}
 		}
         
         // Create the soil temperature and moisture chart from NDJSON data
@@ -2563,6 +2860,7 @@
         
         // Fetch data from Open-Meteo API for user-added points
         async function fetchOpenMeteoData(latitude, longitude, date) {
+			removeHighlights();
             const loadingDiv = document.getElementById('loading');
             loadingDiv.style.display = 'block';
             
@@ -2617,7 +2915,7 @@
                 const newPoint = {
                     datasetId: 'user_data',
                     datasetName: 'User Data',
-                    datasetColor: '#FF6B6B',
+                    datasetColor: userPointColor,
                     observationUrl: '#',
                     date: endDateStr,
                     coordinates: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
@@ -2641,11 +2939,15 @@
                 userData = [newPoint];
                 allData = [...originalData, ...userData];
                 
-                // Update charts with new data
-                updateDataDisplay();
+				updateCharts(); // Just update charts with current data
+				populateDataTable(); // Update table
+
+				// Update map points to include the new user point
+				updateMapPoints();
                 
                 // Show info for the new point
                 showPointInfo(newPoint);
+				removeHighlights();
                 
             } catch (error) {
                 console.error('Error fetching Open-Meteo data:', error);
@@ -2673,7 +2975,10 @@
 					);
 					
 					if (washingtonEdulisId && activeDatasets[washingtonEdulisId].active) {
-						loadNdjsonFile(washingtonEdulisId, activeDatasets[washingtonEdulisId].filePath);
+						loadNdjsonFile(washingtonEdulisId, activeDatasets[washingtonEdulisId].filePath).then(() => {
+							// After loading data, create the map points
+							updateMapPoints();
+						});
 					}
 				}, 500); // Small delay to ensure everything is initialized
 				
@@ -2707,6 +3012,31 @@
 					if (e.key === 'Enter') {
 						document.getElementById('fetch-data').click();
 					}
+				});
+
+				document.getElementById('user-point-color').addEventListener('change', function(e) {
+					userPointColor = e.target.value;
+					if (userData.length > 0) {
+						userData[0].datasetColor = userPointColor;
+						// Pass true to preserve highlights
+						updateVisualsOnly();
+					}
+				});
+				
+				document.getElementById('highlight-color').addEventListener('change', function(e) {
+					highlightColor = e.target.value;
+					// Re-apply highlight if there's a highlighted point
+					if (highlightedPoint) {
+						const tempPoint = highlightedPoint;
+						removeHighlights();
+						highlightPoint(tempPoint);
+					}
+				});
+				
+				document.getElementById('clear-user-points').addEventListener('click', clearUserPoints);
+				
+				document.getElementById('disable-scroll').addEventListener('change', function(e) {
+					enableScroll = e.target.checked;
 				});
 				
 				// Set default date to current date
