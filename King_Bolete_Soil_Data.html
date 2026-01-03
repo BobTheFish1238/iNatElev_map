@@ -1421,7 +1421,8 @@
                 "Oregon_Boletus_edulis.ndjson"
             ],
             "Boletus_rex-veris": [
-                "Washington_Boletus_rex-veris.ndjson"
+                "Washington_Boletus_rex-veris.ndjson",
+                "Oregon_Boletus_rex-veris.ndjson"
             ]
         };
         
@@ -2780,13 +2781,26 @@
 							callbacks: {
 								label: function(context) {
 									const dataPoint = context.dataset.data[context.dataIndex];
-									return [
+									const tooltipLines = [
 										`Dataset: ${dataPoint.datasetName || 'User Data'}`,
 										`Date: ${dataPoint.date || 'N/A'}`,
 										`Elevation: ${dataPoint.elevationFt} ft`,
 										`Soil Temp: ${dataPoint.soilTemp ? dataPoint.soilTemp.toFixed(1) : 'N/A'} °F`,
 										`Soil Moisture: ${dataPoint.soilMoisture ? dataPoint.soilMoisture.toFixed(3) : 'N/A'}`
 									];
+									
+									// Add slope if available
+									if (dataPoint.slopeDeg !== null && dataPoint.slopeDeg !== undefined) {
+										tooltipLines.push(`Slope: ${dataPoint.slopeDeg.toFixed(1)}°`);
+									}
+									
+									// Add aspect if available (with compass direction)
+									if (dataPoint.slopeAspectDeg !== null && dataPoint.slopeAspectDeg !== undefined) {
+										const compassDir = aspectToCompass(dataPoint.slopeAspectDeg);
+										tooltipLines.push(`Aspect: ${dataPoint.slopeAspectDeg.toFixed(1)}° (${compassDir})`);
+									}
+									
+									return tooltipLines;
 								}
 							}
 						}
